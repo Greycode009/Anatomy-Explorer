@@ -12,8 +12,13 @@ import { OfflineBadge } from './OfflineBadge';
 
 const COUNTS = Object.fromEntries(SYSTEMS.map((s) => [s.id, STRUCTURES.filter((x) => x.system === s.id).length])) as Record<SystemId, number>;
 
-function SearchBox() {
+/** Anatomy search. `onPick` runs after a result is chosen (the mobile sheet closes itself). */
+export function SearchBox({ autoFocus = false, onPick, listClassName = 'max-h-72' }: { autoFocus?: boolean; onPick?: () => void; listClassName?: string }) {
   const [q, setQ] = useState('');
+  const pick = (id: string) => {
+    goToStructure(id);
+    onPick?.();
+  };
   const [scoped, setScoped] = useState(false);
   const system = useViewer((s) => s.system);
   const results = useMemo(() => search(q, scoped ? system : 'all'), [q, scoped, system]);
@@ -26,11 +31,13 @@ function SearchBox() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && results[0]) goToStructure(results[0].id);
+            if (e.key === 'Enter' && results[0]) pick(results[0].id);
             if (e.key === 'Escape') setQ('');
           }}
+          autoFocus={autoFocus}
+          enterKeyHint="search"
           placeholder="Search: heart, femur, biceps…"
-          className="w-full rounded-lg border border-ink-700 bg-ink-850 py-2 pl-9 pr-8 text-sm text-ink-200 placeholder:text-ink-400 focus:border-cyan-400/60 focus:outline-none"
+          className="w-full rounded-lg border border-ink-700 bg-ink-850 py-2.5 pl-9 pr-8 text-base lg:py-2 lg:text-sm text-ink-200 placeholder:text-ink-400 focus:border-cyan-400/60 focus:outline-none"
           aria-label="Search anatomy by anatomical or common name"
         />
         {q && (
@@ -46,14 +53,14 @@ function SearchBox() {
         </label>
       )}
       {q.length >= 2 && (
-        <ul className="scroll-thin mt-2 max-h-72 overflow-y-auto rounded-lg border border-ink-700 bg-ink-900/95" role="listbox" aria-label="Search results">
+        <ul className={`scroll-thin mt-2 overflow-y-auto rounded-lg border border-ink-700 bg-ink-900/95 ${listClassName}`} role="listbox" aria-label="Search results">
           {results.length === 0 && <li className="px-3 py-2 text-xs text-ink-400">No matching structures.</li>}
           {results.map((r) => (
             <li key={r.id}>
               <button
                 type="button"
-                onClick={() => goToStructure(r.id)}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-ink-800 focus:bg-ink-800 focus:outline-none"
+                onClick={() => pick(r.id)}
+                className="flex w-full items-center gap-2 px-3 py-2.5 lg:py-1.5 text-left text-sm hover:bg-ink-800 focus:bg-ink-800 focus:outline-none"
               >
                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: SYSTEM_BY_ID[r.system].color }} />
                 <span className="min-w-0 flex-1">

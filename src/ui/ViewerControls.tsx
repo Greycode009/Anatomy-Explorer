@@ -5,7 +5,7 @@ import { STRUCTURES, STRUCTURE_BY_ID } from '../data/manifest';
 import { useViewer, type CutAxis } from '../state/store';
 import { CUT_RANGES } from '../viewer/cutPlane';
 
-export function ModeSwitch() {
+export function ModeSwitch({ compact = false }: { compact?: boolean }) {
   const mode = useViewer((s) => s.mode);
   const setMode = useViewer((s) => s.setMode);
   const btn = (m: Mode, label: string, hint: string) => (
@@ -14,7 +14,7 @@ export function ModeSwitch() {
       onClick={() => setMode(m)}
       aria-pressed={mode === m}
       title={hint}
-      className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:px-4 sm:text-sm ${mode === m ? 'bg-cyan-400 text-ink-950 shadow-[0_0_20px_rgba(34,211,238,0.35)]' : 'text-ink-300 hover:text-white'}`}
+      className={`rounded-full font-semibold transition ${compact ? 'px-3 py-1.5 text-xs' : 'px-3.5 py-1.5 text-xs sm:px-4 sm:text-sm'} ${mode === m ? 'bg-cyan-400 text-ink-950 shadow-[0_0_20px_rgba(34,211,238,0.35)]' : 'text-ink-300 hover:text-white'}`}
     >
       {label}
     </button>
@@ -48,14 +48,11 @@ const PRESETS: { label: string; layers: Record<LayerId, boolean> }[] = [
   { label: 'Organs (rib cage hidden)', layers: { ...all(false), organs: true, vessels: true } },
 ];
 
-function LayerPanel({ onClose }: { onClose: () => void }) {
+/** Layer toggles, presets and see-through controls (used by the desktop popover and the mobile sheet). */
+export function LayerControls() {
   const { layers, setLayer, setLayers, restoreLayers, system, setSystem, outerOpacity, setOuterOpacity, context, setContext } = useViewer();
   return (
-    <div className="w-72 space-y-3 rounded-xl border border-ink-700 bg-ink-900/95 p-3 shadow-2xl backdrop-blur" role="dialog" aria-label="Layers">
-      <div className="flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold text-white">Layers</h3>
-        <button type="button" onClick={onClose} aria-label="Close layers" className="rounded p-1 text-ink-400 hover:text-white"><X className="h-4 w-4" /></button>
-      </div>
+    <div className="space-y-3">
       {system !== 'all' && (
         <p className="rounded-md bg-amber-400/10 px-2 py-1.5 text-[11px] text-amber-200">
           Layers apply to the full-body view. <button type="button" className="underline" onClick={() => setSystem('all')}>Switch to full body</button>
@@ -64,8 +61,8 @@ function LayerPanel({ onClose }: { onClose: () => void }) {
       <ul className="space-y-1">
         {LAYERS.map((l) => (
           <li key={l.id}>
-            <label className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm hover:bg-ink-800">
-              <input type="checkbox" checked={layers[l.id]} onChange={(e) => setLayer(l.id, e.target.checked)} className="accent-cyan-400" />
+            <label className="flex min-h-9 cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm hover:bg-ink-800">
+              <input type="checkbox" checked={layers[l.id]} onChange={(e) => setLayer(l.id, e.target.checked)} className="h-4 w-4 accent-cyan-400" />
               {layers[l.id] ? <Eye className="h-3.5 w-3.5 text-cyan-300" /> : <EyeOff className="h-3.5 w-3.5 text-ink-400" />}
               <span className={layers[l.id] ? 'text-ink-200' : 'text-ink-400'}>{l.label}</span>
               <span className="ml-auto text-[10px] text-ink-400">{LAYER_COUNTS[l.id]}</span>
@@ -75,9 +72,9 @@ function LayerPanel({ onClose }: { onClose: () => void }) {
       </ul>
       <div>
         <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-400">Presets</p>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1.5">
           {PRESETS.map((p) => (
-            <button key={p.label} type="button" onClick={() => { if (system !== 'all') setSystem('all'); setLayers(p.layers); }} className="rounded-full border border-ink-700 px-2 py-0.5 text-[11px] text-ink-300 hover:border-cyan-400/50 hover:text-white">
+            <button key={p.label} type="button" onClick={() => { if (system !== 'all') setSystem('all'); setLayers(p.layers); }} className="rounded-full border border-ink-700 px-2.5 py-1 text-[11px] text-ink-300 hover:border-cyan-400/50 hover:text-white">
               {p.label}
             </button>
           ))}
@@ -89,15 +86,28 @@ function LayerPanel({ onClose }: { onClose: () => void }) {
         <span className="text-[10px] text-ink-400">Transparency only — it does not dissect tissue.</span>
       </label>
       <label className="flex items-center gap-2 text-xs text-ink-300">
-        <input type="checkbox" checked={context} onChange={(e) => setContext(e.target.checked)} className="accent-cyan-400" />
+        <input type="checkbox" checked={context} onChange={(e) => setContext(e.target.checked)} className="h-4 w-4 accent-cyan-400" />
         Faint skeleton behind single-system views
       </label>
-      <button type="button" onClick={restoreLayers} className="w-full rounded-md border border-ink-700 py-1.5 text-xs text-ink-200 hover:border-cyan-400/50">Restore all layers</button>
+      <button type="button" onClick={restoreLayers} className="w-full rounded-md border border-ink-700 py-2 text-xs text-ink-200 hover:border-cyan-400/50">Restore all layers</button>
     </div>
   );
 }
 
-function CutPanel({ onClose }: { onClose: () => void }) {
+function LayerPanel({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="w-72 space-y-3 rounded-xl border border-ink-700 bg-ink-900/95 p-3 shadow-2xl backdrop-blur" role="dialog" aria-label="Layers">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-sm font-semibold text-white">Layers</h3>
+        <button type="button" onClick={onClose} aria-label="Close layers" className="rounded p-1 text-ink-400 hover:text-white"><X className="h-4 w-4" /></button>
+      </div>
+      <LayerControls />
+    </div>
+  );
+}
+
+/** Cutaway plane controls (used by the desktop popover and the mobile sheet). */
+export function CutControls() {
   const cut = useViewer((s) => s.cut);
   const setCut = useViewer((s) => s.setCut);
   const range = cut.axis !== 'none' ? CUT_RANGES[cut.axis] : null;
@@ -106,14 +116,10 @@ function CutPanel({ onClose }: { onClose: () => void }) {
     setCut({ axis, position: r ? (axis === 'transverse' ? 1.3 : 0) : 0 });
   };
   return (
-    <div className="w-72 space-y-3 rounded-xl border border-ink-700 bg-ink-900/95 p-3 shadow-2xl backdrop-blur" role="dialog" aria-label="Cutaway">
-      <div className="flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold text-white">Cutaway plane</h3>
-        <button type="button" onClick={onClose} aria-label="Close cutaway" className="rounded p-1 text-ink-400 hover:text-white"><X className="h-4 w-4" /></button>
-      </div>
+    <div className="space-y-3">
       <div className="grid grid-cols-4 gap-1">
         {(['none', 'sagittal', 'coronal', 'transverse'] as CutAxis[]).map((a) => (
-          <button key={a} type="button" aria-pressed={cut.axis === a} onClick={() => choose(a)} className={`rounded-md px-1 py-1 text-[11px] ${cut.axis === a ? 'bg-cyan-400 text-ink-950' : 'border border-ink-700 text-ink-300'}`}>
+          <button key={a} type="button" aria-pressed={cut.axis === a} onClick={() => choose(a)} className={`rounded-md px-1 py-1.5 text-[11px] ${cut.axis === a ? 'bg-cyan-400 text-ink-950' : 'border border-ink-700 text-ink-300'}`}>
             {a === 'none' ? 'Off' : CUT_RANGES[a].label}
           </button>
         ))}
@@ -125,6 +131,18 @@ function CutPanel({ onClose }: { onClose: () => void }) {
         </label>
       )}
       <p className="text-[10px] leading-relaxed text-ink-400">Clips the real meshes along a plane. Organs are surface models, so cut organs appear hollow.</p>
+    </div>
+  );
+}
+
+function CutPanel({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="w-72 space-y-3 rounded-xl border border-ink-700 bg-ink-900/95 p-3 shadow-2xl backdrop-blur" role="dialog" aria-label="Cutaway">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-sm font-semibold text-white">Cutaway plane</h3>
+        <button type="button" onClick={onClose} aria-label="Close cutaway" className="rounded p-1 text-ink-400 hover:text-white"><X className="h-4 w-4" /></button>
+      </div>
+      <CutControls />
     </div>
   );
 }

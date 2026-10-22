@@ -40,7 +40,6 @@ interface ViewerState {
   notice: Notice | null;
   tour: { id: string; step: number } | null;
   panel: Panel;
-  navOpen: boolean;
   firstRunDone: boolean;
   /** Bumped to remount models after a failed load is retried. */
   reloadNonce: number;
@@ -64,7 +63,6 @@ interface ViewerState {
   notify: (notice: Notice | null) => void;
   setTour: (tour: { id: string; step: number } | null) => void;
   openPanel: (panel: Panel) => void;
-  setNavOpen: (open: boolean) => void;
   finishFirstRun: () => void;
 }
 
@@ -88,7 +86,6 @@ export const useViewer = create<ViewerState>((set, get) => ({
   notice: null,
   tour: null,
   panel: prefs.firstRunDone ? null : 'firstRun',
-  navOpen: false,
   firstRunDone: prefs.firstRunDone,
   reloadNonce: 0,
 
@@ -115,7 +112,7 @@ export const useViewer = create<ViewerState>((set, get) => ({
     const { selectedId } = get();
     const s = selectedId ? STRUCTURE_BY_ID.get(selectedId) : undefined;
     const keep = s && (system === 'all' || s.system === system || s.alsoIn.includes(system));
-    set({ system, selectedId: keep ? selectedId : null, hidden: new Set(), navOpen: false });
+    set({ system, selectedId: keep ? selectedId : null, hidden: new Set() });
   },
   select: (id, opts) => {
     set({ selectedId: id, infoId: null });
@@ -147,7 +144,6 @@ export const useViewer = create<ViewerState>((set, get) => ({
   notify: (notice) => set({ notice }),
   setTour: (tour) => set({ tour }),
   openPanel: (panel) => set({ panel }),
-  setNavOpen: (navOpen) => set({ navOpen }),
   finishFirstRun: () => set({ firstRunDone: true, panel: null }),
 }));
 

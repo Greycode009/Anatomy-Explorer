@@ -54,6 +54,8 @@ export function LabelOverlay() {
 }
 
 const v3 = new THREE.Vector3();
+/** Screen margins (px) covered by the phone UI: chips on top, tool rail right, sheet + tab bar below. */
+const SAFE = { top: 116, right: 64, bottom: 190 };
 const ray = new THREE.Raycaster();
 (ray as THREE.Raycaster & { firstHitOnly?: boolean }).firstHitOnly = true;
 
@@ -91,7 +93,8 @@ export function LabelProjector() {
     const cam = camera as THREE.PerspectiveCamera;
     const focal = size.height / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2));
     const vis = { system: st.system, layers: st.layers, hidden: st.hidden };
-    const max = st.labels ? (st.mode === 'educational' ? 9 : 5) : 0;
+    const narrow = size.width < 640;
+    const max = st.labels ? (st.mode === 'educational' ? (narrow ? 5 : 9) : narrow ? 3 : 5) : 0;
 
     type Cand = { id: string; name: string; x: number; y: number; px: number; selected: boolean };
     const cands: Cand[] = [];
@@ -106,7 +109,11 @@ export function LabelProjector() {
       v3.project(cam);
       if (v3.z > 1 || Math.abs(v3.x) > 1.05 || Math.abs(v3.y) > 1.05) return;
       const px = (Math.hypot(...s.size) / 2 / dist) * focal;
-      cands.push({ id, name: s.name, x: (v3.x * 0.5 + 0.5) * size.width, y: (-v3.y * 0.5 + 0.5) * size.height, px, selected });
+      const x = (v3.x * 0.5 + 0.5) * size.width;
+      const y = (-v3.y * 0.5 + 0.5) * size.height;
+      // Phones: skip anchors hidden under the chip row, tool rail, bottom sheet or tab bar.
+      if (narrow && (y < SAFE.top || y > size.height - SAFE.bottom || x > size.width - SAFE.right)) return;
+      cands.push({ id, name: s.name, x, y, px, selected });
     };
 
     if (st.selectedId) project(st.selectedId, true);
@@ -156,7 +163,7 @@ export function LabelProjector() {
       const text = p.selected ? `● ${p.name}` : p.name;
       if (slot.box.textContent !== text) slot.box.textContent = text;
       const w = slot.box.offsetWidth;
-      const left = Math.max(4, Math.min(size.width - w - 4, p.side === 'l' ? p.lx - w : p.lx));
+      const left = Math.max(4, Math.min(size.width - w - (narrow ? SAFE.right : 4), p.side === 'l' ? p.lx - w : p.lx));
       slot.box.style.transform = `translate(${Math.round(left)}px, ${Math.round(p.ly - 10)}px)`;
       slot.line.style.display = 'block';
       slot.dot.style.display = 'block';

@@ -20,7 +20,9 @@ import path from 'node:path';
 const OUT = path.resolve('test-results');
 const PROFILE = path.resolve('.e2e-profile');
 const PROFILE_FAIL = path.resolve('.e2e-profile-storage-fail');
-const URL_ = 'http://localhost:4173/';
+// A dedicated port so a running `npm run preview` (4173) does not interfere.
+const PORT = process.env.E2E_PORT ?? '4180';
+const URL_ = `http://localhost:${PORT}/`;
 const CHANNEL = process.env.BROWSER_CHANNEL ?? 'msedge';
 const manifest = JSON.parse(await readFile('src/data/anatomy-manifest.json', 'utf8'));
 const SYSTEMS = manifest.systems;
@@ -38,7 +40,7 @@ function check(name, ok, detail = '') {
 
 function startServer(extra = []) {
   return new Promise((resolve, reject) => {
-    const proc = spawn(process.execPath, ['scripts/serve-dist.mjs', '--port', '4173', ...extra], { stdio: ['ignore', 'pipe', 'pipe'] });
+    const proc = spawn(process.execPath, ['scripts/serve-dist.mjs', '--port', PORT, ...extra], { stdio: ['ignore', 'pipe', 'pipe'] });
     proc.log = [];
     proc.stdout.on('data', (d) => {
       for (const line of String(d).split('\n').filter(Boolean)) {
@@ -370,21 +372,35 @@ async function main() {
   check('Guided tour advances and selects real structures', s.tour?.step === 1 && s.selectedId === 'heart', `step ${s.tour?.step}, selected ${s.selectedId}`);
   await page.getByRole('button', { name: 'Exit guided exploration' }).click();
 
-  // Mobile layout.
+  // Mobile layout: system chips, search sheet, info sheet and tab bar.
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(1200);
   await page.screenshot({ path: path.join(OUT, '08-offline-mobile.png') });
-  await page.getByRole('button', { name: 'Open organ systems and search' }).click();
-  await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(OUT, '09-offline-mobile-nav.png') });
-  check('Mobile: collapsible navigation opens', await page.getByRole('button', { name: 'Close navigation' }).first().isVisible());
-  await page.getByRole('button', { name: 'Close navigation' }).last().click(); // the drawer's X button (the first match is the backdrop)
-  await page.evaluate(() => window.__anatomy.viewer.getState().select('stomach'));
+  await page.getByRole('navigation', { name: 'Organ systems' }).getByRole('button', { name: 'Digestive' }).click();
+  await waitForModels(page);
+  s = await state(page);
+  check('Mobile: system chips switch system in one tap', s.system === 'digestive');
+  await page.getByRole('navigation', { name: 'App sections' }).getByRole('button', { name: 'Search' }).click();
+  const mobileSearch = page.getByRole('region', { name: 'Search' }).getByRole('textbox', { name: /Search anatomy/ });
+  await mobileSearch.fill('stomach');
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: path.join(OUT, '09-offline-mobile-search.png') });
+  await page.getByRole('region', { name: 'Search' }).getByRole('listbox', { name: 'Search results' }).getByRole('button').first().click();
   await page.waitForTimeout(1500);
+  s = await state(page);
   const sheet = page.getByRole('region', { name: 'Information' });
-  check('Mobile: bottom sheet shows the selected structure', (await sheet.innerText()).includes('Stomach'));
+  check('Mobile: search sheet selects the result and closes', s.selectedId === 'stomach' && !(await page.getByRole('region', { name: 'Search' }).isVisible()));
+  check('Mobile: info sheet shows the selected structure', (await sheet.innerText()).includes('Stomach'));
+  await sheet.getByRole('button', { name: 'Details' }).click();
+  await page.waitForTimeout(600);
+  check('Mobile: info sheet expands to show details', (await sheet.innerText()).includes('Primary functions'.toUpperCase()) || (await sheet.innerText()).toLowerCase().includes('primary functions'));
   await page.screenshot({ path: path.join(OUT, '10-offline-mobile-sheet.png') });
+  await page.getByRole('navigation', { name: 'App sections' }).getByRole('button', { name: 'Layers' }).click();
+  check('Mobile: layers sheet opens from the tab bar', await page.getByRole('region', { name: 'Layers and cutaway' }).isVisible());
+  await page.screenshot({ path: path.join(OUT, '10b-offline-mobile-layers.png') });
+  await page.getByRole('button', { name: 'Close Layers & cutaway' }).click();
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.evaluate(() => window.__anatomy.viewer.getState().setSystem('all'));
 
   // Network audit for the whole offline session.
   const network = requests.filter((r) => !r.url.startsWith('blob:') && !r.url.startsWith('data:'));

@@ -84,7 +84,7 @@ function ModeAvailability({ s }: { s: Structure }) {
   return <div className="flex gap-1.5">{chip('realistic')}{chip('educational')}</div>;
 }
 
-function StructureView({ s }: { s: Structure }) {
+function StructureView({ s, hideHeader }: { s: Structure; hideHeader?: boolean }) {
   const content = contentFor(s);
   const c = content ?? fallbackContent(s);
   const sys = SYSTEM_BY_ID[s.system];
@@ -92,7 +92,7 @@ function StructureView({ s }: { s: Structure }) {
   return (
     <div className="space-y-4">
       <header className="space-y-2">
-        <div className="flex items-start gap-2">
+        <div className={`flex items-start gap-2 ${hideHeader ? 'sr-only' : ''}`}>
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-[11px] font-medium" style={{ color: sys.color }}>
               <span className="h-2 w-2 rounded-full" style={{ background: sys.color }} /> {sys.name}
@@ -102,14 +102,23 @@ function StructureView({ s }: { s: Structure }) {
             {content && content.anatomicalName.toLowerCase() !== s.name.toLowerCase() && <p className="text-xs text-ink-400">{content.anatomicalName}</p>}
             {content?.commonName && <p className="text-xs text-ink-300">Common name: {content.commonName}</p>}
           </div>
-          <button type="button" onClick={() => select(null)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-800 hover:text-ink-200" aria-label="Clear selection">
-            <X className="h-4 w-4" />
-          </button>
+          {!hideHeader && (
+            <button type="button" onClick={() => select(null)} className="rounded-md p-1.5 text-ink-400 hover:bg-ink-800 hover:text-ink-200" aria-label="Clear selection">
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
+        {hideHeader && (
+          <div className="text-xs text-ink-400">
+            {content && content.anatomicalName.toLowerCase() !== s.name.toLowerCase() && <p>{content.anatomicalName}</p>}
+            {content?.commonName && <p className="text-ink-300">Common name: {content.commonName}</p>}
+            {s.alsoIn.length > 0 && <p>Also part of the {s.alsoIn.map((a) => SYSTEM_BY_ID[a].shortName.toLowerCase()).join(', ')} system</p>}
+          </div>
+        )}
         <ModeAvailability s={s} />
         <div className="flex gap-1.5">
-          <button type="button" onClick={() => requestCamera({ kind: 'focus', id: s.id })} className="flex items-center gap-1 rounded-md border border-ink-700 px-2 py-1 text-xs text-ink-200 hover:border-cyan-400/50"><Crosshair className="h-3.5 w-3.5" /> Focus</button>
-          <button type="button" onClick={() => hide(s.id)} className="flex items-center gap-1 rounded-md border border-ink-700 px-2 py-1 text-xs text-ink-200 hover:border-cyan-400/50"><EyeOff className="h-3.5 w-3.5" /> Hide</button>
+          <button type="button" onClick={() => requestCamera({ kind: 'focus', id: s.id })} className="flex items-center gap-1 rounded-md border border-ink-700 px-2.5 py-1.5 text-xs text-ink-200 hover:border-cyan-400/50"><Crosshair className="h-3.5 w-3.5" /> Focus</button>
+          <button type="button" onClick={() => hide(s.id)} className="flex items-center gap-1 rounded-md border border-ink-700 px-2.5 py-1.5 text-xs text-ink-200 hover:border-cyan-400/50"><EyeOff className="h-3.5 w-3.5" /> Hide</button>
         </div>
         {!content && (
           <p className="flex gap-1.5 rounded-md border border-amber-400/30 bg-amber-400/5 px-2.5 py-1.5 text-xs text-amber-200">
@@ -127,13 +136,13 @@ function StructureView({ s }: { s: Structure }) {
   );
 }
 
-function InfoOnlyView({ id }: { id: string }) {
+function InfoOnlyView({ id, hideHeader }: { id: string; hideHeader?: boolean }) {
   const info = INFO_ONLY_BY_ID.get(id)!;
   const sys = SYSTEM_BY_ID[info.system];
   return (
     <div className="space-y-4">
       <header className="space-y-2">
-        <div className="flex items-start gap-2">
+        <div className={`flex items-start gap-2 ${hideHeader ? 'sr-only' : ''}`}>
           <div className="flex-1">
             <p className="text-[11px] font-medium" style={{ color: sys.color }}>{sys.name}</p>
             <h2 className="font-display text-xl font-semibold text-white">{info.name}</h2>
@@ -149,7 +158,7 @@ function InfoOnlyView({ id }: { id: string }) {
   );
 }
 
-function SystemOverview() {
+function SystemOverview({ hideHeader }: { hideHeader?: boolean }) {
   const system = useViewer((s) => s.system);
   const mode = useViewer((s) => s.mode);
   const hidden = useViewer((s) => s.hidden);
@@ -160,9 +169,11 @@ function SystemOverview() {
     return (
       <div className="space-y-4">
         <header>
-          <h2 className="font-display text-xl font-semibold text-white">Full body</h2>
+          <h2 className={hideHeader ? 'sr-only' : 'font-display text-xl font-semibold text-white'}>Full body</h2>
           <p className="mt-1 text-sm leading-relaxed text-ink-300">
-            Click or tap any structure to identify it. Use the layer controls to peel from skin to muscle to bone and organs, or choose an organ system on the left.
+            {hideHeader
+              ? 'Tap any structure to identify it. Use Layers to peel from skin to muscle to bone and organs, or pick an organ system from the chips at the top.'
+              : 'Click or tap any structure to identify it. Use the layer controls to peel from skin to muscle to bone and organs, or choose an organ system on the left.'}
           </p>
         </header>
         <Section title="Guided exploration">
@@ -188,8 +199,10 @@ function SystemOverview() {
   return (
     <div className="space-y-4">
       <header>
-        <p className="text-[11px] font-medium" style={{ color: sys.color }}>Organ system</p>
-        <h2 className="font-display text-xl font-semibold text-white">{sys.name}</h2>
+        <div className={hideHeader ? 'sr-only' : ''}>
+          <p className="text-[11px] font-medium" style={{ color: sys.color }}>Organ system</p>
+          <h2 className="font-display text-xl font-semibold text-white">{sys.name}</h2>
+        </div>
         <p className="mt-1 text-sm leading-relaxed text-ink-300">{sys.overview}</p>
       </header>
       <Section title="Functions">
@@ -199,11 +212,11 @@ function SystemOverview() {
         <p className="rounded-md bg-ink-850 px-2.5 py-2 text-xs leading-relaxed text-ink-300">{sys.coverage}</p>
       </Section>
       <Section title={`Structures (${list.length})`}>
-        <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter this list" aria-label="Filter structures" className="w-full rounded-md border border-ink-700 bg-ink-850 px-2.5 py-1.5 text-xs focus:border-cyan-400/60 focus:outline-none" />
-        <ul className="scroll-thin max-h-80 space-y-0.5 overflow-y-auto pr-1">
+        <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter this list" aria-label="Filter structures" className="w-full rounded-md border border-ink-700 bg-ink-850 px-2.5 py-2 text-base lg:py-1.5 lg:text-xs focus:border-cyan-400/60 focus:outline-none" />
+        <ul className={`scroll-thin space-y-0.5 pr-1 ${hideHeader ? '' : 'max-h-80 overflow-y-auto'}`}>
           {list.map((s) => (
             <li key={s.id}>
-              <button type="button" onClick={() => goToStructure(s.id)} className="flex w-full items-center justify-between gap-2 rounded px-2 py-1 text-left text-xs text-ink-300 hover:bg-ink-800 hover:text-white focus:bg-ink-800 focus:outline-none">
+              <button type="button" onClick={() => goToStructure(s.id)} className="flex w-full items-center justify-between gap-2 rounded px-2 py-2.5 text-left text-sm lg:py-1 lg:text-xs text-ink-300 hover:bg-ink-800 hover:text-white focus:bg-ink-800 focus:outline-none">
                 <span className={hidden.has(s.id) ? 'line-through opacity-60' : ''}>{s.name}</span>
                 {!hasModel(s, mode) && <span className="text-[10px] text-rose-300">no {mode} model</span>}
               </button>
@@ -215,11 +228,12 @@ function SystemOverview() {
   );
 }
 
-export function InfoPanelContent() {
+/** `hideHeader` drops the title block when a surrounding sheet already shows it (mobile). */
+export function InfoPanelContent({ hideHeader = false }: { hideHeader?: boolean }) {
   const selectedId = useViewer((s) => s.selectedId);
   const infoId = useViewer((s) => s.infoId);
   const s = selectedId ? STRUCTURE_BY_ID.get(selectedId) : undefined;
-  if (infoId && INFO_ONLY_BY_ID.has(infoId)) return <InfoOnlyView id={infoId} />;
-  if (s) return <StructureView s={s} />;
-  return <SystemOverview />;
+  if (infoId && INFO_ONLY_BY_ID.has(infoId)) return <InfoOnlyView id={infoId} hideHeader={hideHeader} />;
+  if (s) return <StructureView s={s} hideHeader={hideHeader} />;
+  return <SystemOverview hideHeader={hideHeader} />;
 }

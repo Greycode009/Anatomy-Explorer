@@ -20,13 +20,14 @@ function Modal({ title, onClose, children, wide }: { title: string; onClose: () 
     return () => removeEventListener('keydown', onKey);
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-3 backdrop-blur-sm" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" aria-label={title} className={`flex max-h-[92vh] w-full flex-col rounded-2xl border border-ink-700 bg-ink-900 shadow-2xl ${wide ? 'max-w-4xl' : 'max-w-2xl'}`}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-3" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      {/* Phones: a bottom sheet; larger screens: a centered dialog. */}
+      <div role="dialog" aria-modal="true" aria-label={title} className={`flex max-h-[92dvh] w-full flex-col rounded-t-2xl border border-ink-700 bg-ink-900 shadow-2xl sm:rounded-2xl ${wide ? 'max-w-4xl' : 'max-w-2xl'}`}>
         <header className="flex items-center justify-between border-b border-ink-800 px-5 py-3">
           <h2 className="font-display text-lg font-semibold text-white">{title}</h2>
           <button type="button" onClick={onClose} aria-label="Close" className="rounded-md p-1.5 text-ink-400 hover:bg-ink-800 hover:text-white"><X className="h-5 w-5" /></button>
         </header>
-        <div className="scroll-thin overflow-y-auto px-5 py-4">{children}</div>
+        <div className="scroll-thin overflow-y-auto px-5 pt-4" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>{children}</div>
       </div>
     </div>
   );
@@ -62,7 +63,7 @@ function AssetActions({ asset }: { asset: AssetEntry }) {
   const st = useAssets((s) => s.status[asset.id]?.state);
   const online = useOffline((s) => s.online);
   const icon = 'h-3.5 w-3.5';
-  const btn = 'grid h-7 w-7 place-items-center rounded-md border border-ink-700 text-ink-300 hover:border-cyan-400/50 hover:text-white disabled:opacity-30';
+  const btn = 'grid h-9 w-9 place-items-center rounded-md border sm:h-7 sm:w-7 border-ink-700 text-ink-300 hover:border-cyan-400/50 hover:text-white disabled:opacity-30';
   return (
     <div className="flex gap-1">
       {(st === 'not-downloaded' || st === 'failed' || st === 'update-available' || st === 'storage-unavailable') && (
@@ -126,7 +127,30 @@ export function DownloadManager({ onClose }: { onClose: () => void }) {
           <PackButton label="Everything" assets={ASSETS} />
         </div>
         {!r.online && <p className="flex items-center gap-2 rounded-md bg-amber-400/10 px-3 py-2 text-xs text-amber-200"><CloudOff className="h-4 w-4" /> You are offline. Stored assets work; downloads resume when you are back online.</p>}
-        <div className="overflow-x-auto">
+        {/* Phones: one card per system instead of the wide table. */}
+        <ul className="space-y-2 sm:hidden">
+          {SYSTEMS.map((s) => {
+            const Icon = SYSTEM_ICONS[s.id];
+            const pair = [assetFor(s.id, 'realistic'), assetFor(s.id, 'educational')].filter((a): a is AssetEntry => !!a);
+            return (
+              <li key={s.id} className="rounded-xl border border-ink-800 bg-ink-850 p-3">
+                <div className="mb-2 flex items-center gap-2">
+                  <Icon className="h-4 w-4" style={{ color: s.color }} />
+                  <span className="flex-1 text-sm font-medium text-ink-200">{s.shortName}</span>
+                  <button type="button" disabled={!r.online} onClick={() => queueDownloads(pair)} className="rounded-md border border-ink-700 px-2.5 py-1.5 text-[11px] text-ink-300 disabled:opacity-30">Download both</button>
+                </div>
+                {pair.map((a) => (
+                  <div key={a.id} className="flex items-center gap-2 border-t border-ink-800 py-2">
+                    <span className="w-20 shrink-0 text-xs text-ink-400">{a.mode === 'realistic' ? 'Realistic' : 'Educational'}</span>
+                    <div className="min-w-0 flex-1"><StatusCell asset={a} /></div>
+                    <AssetActions asset={a} />
+                  </div>
+                ))}
+              </li>
+            );
+          })}
+        </ul>
+        <div className="hidden overflow-x-auto sm:block">
           <table className="w-full min-w-[620px] text-left text-sm">
             <thead className="text-[10px] uppercase tracking-[0.12em] text-ink-400">
               <tr><th className="py-1.5 font-semibold">System</th><th className="font-semibold">Realistic</th><th className="font-semibold">Educational</th><th className="w-24 font-semibold">Both</th></tr>
@@ -215,8 +239,8 @@ export function FirstRun({ onClose }: { onClose: () => void }) {
         <p className="rounded-md border border-ink-800 bg-ink-850 px-3 py-2 text-xs text-ink-400">
           Educational use only — not a diagnostic or clinical tool. The model is one adult male body; female reproductive anatomy, peripheral nerves, the spinal cord, lymph nodes and the thyroid are described but not modelled.
         </p>
-        <div className="flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-ink-950">Start exploring</button>
+        <div className="sticky bottom-0 -mx-5 flex justify-end border-t border-ink-800 bg-ink-900 px-5 py-3 sm:static sm:mx-0 sm:border-0 sm:p-0">
+          <button type="button" onClick={onClose} className="w-full rounded-lg bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-ink-950 sm:w-auto">Start exploring</button>
         </div>
       </div>
     </Modal>

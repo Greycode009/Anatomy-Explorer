@@ -71,7 +71,7 @@ function apply(parts: Part[], fade: number) {
     mat.color.copy(mat.userData.baseColor);
     if (st.selectedId && !selected && st.mode === 'educational') mat.color.lerp(DIM, 0.55);
     mat.emissive.copy(selected ? SELECT_COLOR : hovered ? HOVER_COLOR : new THREE.Color(0));
-    mat.emissiveIntensity = selected ? (st.mode === 'realistic' ? 0.16 : 0.26) : hovered ? 0.14 : 0;
+    mat.emissiveIntensity = selected ? (st.mode === 'realistic' ? 0.16 : 0.15) : hovered ? 0.12 : 0;
 
     const outer = st.system === 'all' && (s.layer === 'skin' || s.layer === 'muscles-superficial') && !selected;
     const faded = st.fadeOthers && st.selectedId !== null && !selected;

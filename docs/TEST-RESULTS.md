@@ -2,8 +2,8 @@
 
 This is the automated end-to-end and offline test of the **production build** (`scripts/e2e-offline.mjs`). It ran in **Microsoft Edge** (installed system browser, driven by playwright-core, headless) on Windows 11 with an Intel UHD GPU.
 
-- Run: 2026-10-22T05:08:59.757Z → 2026-10-22T05:10:27.838Z
-- Result: **63 passed, 0 failed**
+- Run: 2026-10-22T09:55:26.868Z → 2026-10-22T09:57:31.375Z
+- Result: **66 passed, 0 failed**
 - Raw report: `test-results/offline-test.json`. Screenshots: `test-results/*.png`. Neither is committed; running `npm run test:offline` regenerates both.
 
 ## How the offline test works
@@ -18,7 +18,7 @@ This is the automated end-to-end and offline test of the **production build** (`
    - the label toggle, layer presets and restore
    - hiding and showing a structure
    - cutaway and a guided tour
-   - the mobile layout
+   - the phone layout: system chips, search sheet, info sheet, layers sheet
 
    Every HTTP request is recorded.
 4. **Missing asset.** One stored pack is deleted while offline and then opened.
@@ -77,8 +77,8 @@ This is the automated end-to-end and offline test of the **production build** (`
 | ✅ pass | Switching mode keeps the selected structure |  |
 | ✅ pass | Search "heart" selects and focuses the heart | selected: heart |
 | ✅ pass | Info-only result is shown and clearly marked as having no 3D model | thyroid-gland |
-| ✅ pass | Zoom in and zoom out move the camera | 3.55 -> 2.63 -> 4.51 |
-| ✅ pass | Dragging rotates the camera | camera x = -4.32 |
+| ✅ pass | Zoom in and zoom out move the camera | 3.55 -> 2.63 -> 4.62 |
+| ✅ pass | Dragging rotates the camera | camera x = -4.43 |
 | ✅ pass | Reset returns to the full-body view | -0.01, 1.05, 3.40 |
 | ✅ pass | Label toggle shows and hides labels | 5 -> 0 |
 | ✅ pass | Layer preset "Body surface" shows only the skin layer |  |
@@ -88,8 +88,11 @@ This is the automated end-to-end and offline test of the **production build** (`
 | ✅ pass | Show hidden structures restores it |  |
 | ✅ pass | Cutaway plane can be enabled |  |
 | ✅ pass | Guided tour advances and selects real structures | step 1, selected heart |
-| ✅ pass | Mobile: collapsible navigation opens |  |
-| ✅ pass | Mobile: bottom sheet shows the selected structure |  |
+| ✅ pass | Mobile: system chips switch system in one tap |  |
+| ✅ pass | Mobile: search sheet selects the result and closes |  |
+| ✅ pass | Mobile: info sheet shows the selected structure |  |
+| ✅ pass | Mobile: info sheet expands to show details |  |
+| ✅ pass | Mobile: layers sheet opens from the tab bar |  |
 | ✅ pass | Offline session: every HTTP request was served by the service worker | 8 requests |
 | ✅ pass | Offline session: no failed requests |  |
 | ✅ pass | Missing asset offline: clear message, no crash | The realistic lymphatic model pack has not been downloaded, and this device is offline. |

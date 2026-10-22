@@ -11,6 +11,10 @@ import { useAssets } from '../assets/repository';
 import { useLoadState } from './modelCache';
 
 export const HOME = { position: new THREE.Vector3(0, 1.05, 3.4), target: new THREE.Vector3(0, 0.88, 0) };
+// Portrait phones: the top chips and the bottom sheet + tab bar cover part of the canvas, so the
+// full-body view is pulled back and shifted up to fit the uncovered area.
+const HOME_PORTRAIT = { position: new THREE.Vector3(0, 0.9, 4.35), target: new THREE.Vector3(0, 0.76, 0) };
+const home = () => (innerWidth < 1024 && innerHeight > innerWidth ? HOME_PORTRAIT : HOME);
 const FOV = 35;
 
 function CameraRig() {
@@ -21,14 +25,16 @@ function CameraRig() {
   useEffect(() => {
     const c = ref.current;
     if (!c) return;
-    c.setLookAt(HOME.position.x, HOME.position.y, HOME.position.z, HOME.target.x, HOME.target.y, HOME.target.z, false);
+    const h = home();
+    c.setLookAt(h.position.x, h.position.y, h.position.z, h.target.x, h.target.y, h.target.z, false);
   }, []);
 
   useEffect(() => {
     const c = ref.current;
     if (!c || !camera) return;
     if (camera.kind === 'reset') {
-      c.setLookAt(HOME.position.x, HOME.position.y, HOME.position.z, HOME.target.x, HOME.target.y, HOME.target.z, true);
+      const h = home();
+      c.setLookAt(h.position.x, h.position.y, h.position.z, h.target.x, h.target.y, h.target.z, true);
     } else if (camera.kind === 'zoom') {
       c.dolly(c.distance * (1 - 1 / camera.factor), true);
     } else if (camera.kind === 'focus') {

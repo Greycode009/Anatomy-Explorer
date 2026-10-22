@@ -29,7 +29,17 @@ An offline-first web application (installable PWA) for exploring human anatomy i
   - The download manager covers per-system, per-mode, all-pack, retry, verify and remove actions.
   - Readiness shows installed, shell cached, partial or full assets, and whether both modes are available.
   - The app requests persistent storage.
-- **Responsive.** Desktop uses a three-column layout. Mobile has a collapsible navigation drawer, a bottom sheet for information and touch controls.
+- **Responsive.** Desktop uses a three-column layout. Phones and tablets get their own layout:
+  - one-tap organ-system chips under the header
+  - a bottom tab bar (Info, Search, Layers, Tours, More)
+  - draggable bottom sheets with peek, half and full heights
+  - a peek card for the selection with Focus, Hide and Details
+  - a slim tool rail on the right; zoom is by pinch
+  - labels that avoid the on-screen controls
+  - full-screen search, and bottom-sheet dialogs
+  - a card layout for the download manager
+
+  `npm run test:mobile-shots` (with `npm run dev` running) captures phone screenshots into `test-results/mobile/`.
 
 ## Tech stack
 
@@ -121,6 +131,7 @@ src/
   features/               search, navigation (go to structure, tours), offline status / service worker
   state/                  zustand store; small preferences in localStorage
   ui/                     sidebar, info panel, toolbar and layer/cut panels, overlays, modals
+  ui/mobile/              phone layout: system chips, tool rail, tab bar, draggable sheets
 ```
 
 Storage roles:
