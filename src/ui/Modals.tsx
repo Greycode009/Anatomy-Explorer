@@ -6,7 +6,7 @@ import { SYSTEMS } from '../data/systems';
 import { INFO_ONLY } from '../data/content';
 import { useViewer } from '../state/store';
 import {
-  cancelDownloads, queueDownloads, refreshStatuses, removeAsset, requestPersistentStorage, useAssets, verifyAsset,
+  BUNDLED, cancelDownloads, queueDownloads, refreshStatuses, removeAsset, requestPersistentStorage, useAssets, verifyAsset,
   type AssetStatus,
 } from '../assets/repository';
 import { refreshStorageEstimate, useOffline } from '../features/offline';
@@ -103,6 +103,31 @@ function PackButton({ label, assets }: { label: string; assets: AssetEntry[] }) 
         {p.failed > 0 && <span className="text-rose-300"> · {p.failed} failed</span>}
       </span>
     </button>
+  );
+}
+
+/** Android app: every pack ships inside the APK, so there is nothing to download, only to verify. */
+function BuiltInAssets({ onClose }: { onClose: () => void }) {
+  const status = useAssets((s) => s.status);
+  const verified = ASSETS.filter((a) => status[a.id]?.meta?.integrity === 'sha256').length;
+  const failed = ASSETS.filter((a) => status[a.id]?.state === 'failed');
+  const total = ASSETS.reduce((n, a) => n + a.bytes, 0);
+  return (
+    <Modal title="Offline models" onClose={onClose}>
+      <div className="space-y-4 text-sm text-ink-300">
+        <p className="flex items-start gap-2 rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-3 text-emerald-100">
+          <CircleCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+          All {ASSETS.length} model packs ({formatBytes(total)}, both modes for all 11 systems) are built into this app. Everything works without an internet connection.
+        </p>
+        <p className="text-xs text-ink-400">
+          Each pack is checked against its SHA-256 checksum when it is first opened. {verified} of {ASSETS.length} have been verified so far this session.
+        </p>
+        {failed.map((a) => <p key={a.id} className="text-xs text-rose-300">{a.id}: {status[a.id]?.error}</p>)}
+        <button type="button" onClick={() => Promise.all(ASSETS.map(verifyAsset))} className="flex items-center gap-1.5 rounded-md border border-ink-700 px-3 py-2 text-xs text-ink-200 active:border-cyan-400/50">
+          <ShieldCheck className="h-3.5 w-3.5" /> Verify all built-in models now
+        </button>
+      </div>
+    </Modal>
   );
 }
 
@@ -225,17 +250,23 @@ export function FirstRun({ onClose }: { onClose: () => void }) {
         <p>
           Explore a full 3D human body built from <strong className="text-ink-200">BodyParts3D</strong>, a research anatomy dataset with {manifest.structures.length} selectable structures across all eleven organ systems (coverage differs by system; gaps are labelled). Switch between a <strong className="text-ink-200">Realistic</strong> view with detailed meshes and tissue-like materials and a simplified, color-coded <strong className="text-ink-200">Educational</strong> view.
         </p>
-        <p>
-          <strong className="text-ink-200">Works offline.</strong> The app itself and all educational text ({INFO_ONLY.length} extra information-only entries included) are cached automatically. The 3D models are downloaded on demand, or you can store them now:
-        </p>
-        <div className="grid gap-2 sm:grid-cols-3">
+        {BUNDLED ? (
+          <p>
+            <strong className="text-ink-200">Works offline.</strong> All 3D models ({size(ASSETS)}) and all educational text ({INFO_ONLY.length} extra information-only entries included) are built into this app. No downloads are needed.
+          </p>
+        ) : (
+          <p>
+            <strong className="text-ink-200">Works offline.</strong> The app itself and all educational text ({INFO_ONLY.length} extra information-only entries included) are cached automatically. The 3D models are downloaded on demand, or you can store them now:
+          </p>
+        )}
+        {!BUNDLED && <><div className="grid gap-2 sm:grid-cols-3">
           <button type="button" onClick={() => queueDownloads(edu)} className="rounded-xl border border-ink-700 bg-ink-850 p-3 text-left hover:border-cyan-400/50"><span className="block font-medium text-white">Educational pack</span><span className="text-[11px] text-ink-400">{size(edu)} · fast, lightweight</span></button>
           <button type="button" onClick={() => queueDownloads(real)} className="rounded-xl border border-ink-700 bg-ink-850 p-3 text-left hover:border-cyan-400/50"><span className="block font-medium text-white">Realistic pack</span><span className="text-[11px] text-ink-400">{size(real)} · high detail</span></button>
           <button type="button" onClick={() => queueDownloads(ASSETS)} className="rounded-xl border border-cyan-400/40 bg-cyan-400/10 p-3 text-left hover:border-cyan-400"><span className="block font-medium text-white">Everything</span><span className="text-[11px] text-ink-400">{size(ASSETS)} · both modes, all systems</span></button>
         </div>
         <p className="text-xs text-ink-400">
           Available immediately: navigation, search, educational content and guided tours. Each system's models download automatically the first time you open it while online. {r.stored}/{r.total} model packs are stored so far — progress is in Downloads.
-        </p>
+        </p></>}
         <p className="rounded-md border border-ink-800 bg-ink-850 px-3 py-2 text-xs text-ink-400">
           Educational use only — not a diagnostic or clinical tool. The model is one adult male body; female reproductive anatomy, peripheral nerves, the spinal cord, lymph nodes and the thyroid are described but not modelled.
         </p>
@@ -284,7 +315,7 @@ export function PanelHost() {
   const panel = useViewer((s) => s.panel);
   const openPanel = useViewer((s) => s.openPanel);
   const finishFirstRun = useViewer((s) => s.finishFirstRun);
-  if (panel === 'downloads') return <DownloadManager onClose={() => openPanel(null)} />;
+  if (panel === 'downloads') return BUNDLED ? <BuiltInAssets onClose={() => openPanel(null)} /> : <DownloadManager onClose={() => openPanel(null)} />;
   if (panel === 'about') return <About onClose={() => openPanel(null)} />;
   if (panel === 'firstRun') return <FirstRun onClose={finishFirstRun} />;
   return null;

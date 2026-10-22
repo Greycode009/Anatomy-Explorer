@@ -3,9 +3,11 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
 import { initOffline } from './features/offline';
-import { checkPersisted, refreshStatuses } from './assets/repository';
+import { BUNDLED, checkPersisted, refreshStatuses } from './assets/repository';
+import { initNativeBridge } from './features/nativeBridge';
 
 initOffline();
+if (BUNDLED) initNativeBridge();
 refreshStatuses();
 checkPersisted();
 

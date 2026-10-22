@@ -29,3 +29,8 @@ dist-ssr
 test-results/
 .e2e-profile/
 .e2e-profile-storage-fail/
+
+# Native web build for the Android app
+dist-native/
+.gradle-build.log
+release/

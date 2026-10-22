@@ -14,7 +14,8 @@ export interface StoredAssetMeta {
   integrity: 'sha256' | 'size-and-format';
 }
 
-export type BackendName = 'indexeddb' | 'cache-storage';
+/** 'bundled' = shipped inside the Android app package (read-only, always available). */
+export type BackendName = 'indexeddb' | 'cache-storage' | 'bundled';
 
 export interface StorageBackend {
   name: BackendName;

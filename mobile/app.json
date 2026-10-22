@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Anatomy Explorer",
+    "slug": "anatomy-explorer",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#070b12",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.anatomyexplorer.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#0b1626",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 140,
+          "backgroundColor": "#070b12"
+        }
+      ],
+      "./plugins/withWebBundle.js"
+    ]
+  }
+}

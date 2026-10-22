@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 import { registerSW } from 'virtual:pwa-register';
+import { BUNDLED } from '../assets/repository';
 
 export interface OfflineState {
   online: boolean;
   /** Service worker state. 'dev' when running the Vite dev server (no service worker). */
-  sw: 'unsupported' | 'dev' | 'registering' | 'active' | 'error';
+  sw: 'unsupported' | 'dev' | 'registering' | 'active' | 'error' | 'native';
   shellCached: boolean;
   installed: boolean;
   updateReady: boolean;
@@ -14,9 +15,10 @@ export interface OfflineState {
 
 export const useOffline = create<OfflineState>(() => ({
   online: navigator.onLine,
-  sw: 'serviceWorker' in navigator ? (import.meta.env.DEV ? 'dev' : 'registering') : 'unsupported',
-  shellCached: false,
-  installed: matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true,
+  // The Android app ships every file in its package: no service worker is needed.
+  sw: BUNDLED ? 'native' : 'serviceWorker' in navigator ? (import.meta.env.DEV ? 'dev' : 'registering') : 'unsupported',
+  shellCached: BUNDLED,
+  installed: BUNDLED || matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true,
   updateReady: false,
   storage: null,
   applyUpdate: () => {},
@@ -45,7 +47,7 @@ export function initOffline(): void {
   matchMedia('(display-mode: standalone)').addEventListener('change', (e) => useOffline.setState({ installed: e.matches }));
   refreshStorageEstimate();
 
-  if (!('serviceWorker' in navigator) || import.meta.env.DEV) return;
+  if (BUNDLED || !('serviceWorker' in navigator) || import.meta.env.DEV) return;
   const update = registerSW({
     immediate: true,
     onOfflineReady: async () => useOffline.setState({ shellCached: await checkShellCached() }),

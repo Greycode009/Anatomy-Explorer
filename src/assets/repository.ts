@@ -7,7 +7,7 @@ import { create } from 'zustand';
 import type { AssetEntry } from '../types';
 import { ASSETS, ASSET_BY_ID } from '../data/manifest';
 import { BACKENDS, type StoredAssetMeta } from './backends';
-import { AssetError, downloadAsset, sha256Hex, validateGlb } from './downloader';
+import { AssetError, assetUrl, downloadAsset, sha256Hex, validateGlb } from './downloader';
 
 export type AssetState =
   | 'unknown' | 'not-downloaded' | 'queued' | 'downloading' | 'verifying' | 'stored'
@@ -35,6 +35,40 @@ export const useAssets = create<AssetStore>((set, get) => ({
 
 const setStatus = (id: string, s: AssetStatus) => useAssets.getState().set(id, s);
 
+/**
+ * Android app build: every model pack ships inside the APK, so nothing is downloaded or stored.
+ * Bytes are read from the packaged files (file:// URLs need XMLHttpRequest; fetch() rejects them).
+ */
+export const BUNDLED = import.meta.env.VITE_BUNDLED_ASSETS === 'true';
+
+const bundledMeta = (asset: AssetEntry, integrity: StoredAssetMeta['integrity']): StoredAssetMeta => ({
+  assetId: asset.id, version: asset.version, sha256: asset.sha256, bytes: asset.bytes, storedAt: 0, backend: 'bundled', integrity,
+});
+
+function readBundled(asset: AssetEntry): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', assetUrl(asset));
+    xhr.responseType = 'arraybuffer';
+    // file:// responses report status 0 on success.
+    xhr.onload = () => (xhr.response && (xhr.status === 0 || xhr.status === 200)
+      ? resolve(xhr.response as ArrayBuffer)
+      : reject(new AssetError('http', `Could not read the built-in ${asset.mode} ${asset.system} model (status ${xhr.status}).`)));
+    xhr.onerror = () => reject(new AssetError('format', `The built-in ${asset.mode} ${asset.system} model is missing from the app package.`));
+    xhr.send();
+  });
+}
+
+async function loadBundled(asset: AssetEntry): Promise<ArrayBuffer> {
+  const data = await readBundled(asset);
+  if (data.byteLength !== asset.bytes) throw new AssetError('size', `Built-in model has ${data.byteLength} bytes, expected ${asset.bytes}.`);
+  validateGlb(data);
+  const hash = await sha256Hex(data);
+  if (hash !== null && hash !== asset.sha256) throw new AssetError('integrity', 'Built-in model failed its SHA-256 check.');
+  setStatus(asset.id, { state: 'stored', meta: bundledMeta(asset, hash === null ? 'size-and-format' : 'sha256') });
+  return data;
+}
+
 async function findStored(assetId: string): Promise<StoredAssetMeta | null> {
   for (const backend of BACKENDS) {
     try {
@@ -49,6 +83,10 @@ async function findStored(assetId: string): Promise<StoredAssetMeta | null> {
 
 /** Reads storage and updates every asset's status (used at start-up and after changes). */
 export async function refreshStatuses(): Promise<void> {
+  if (BUNDLED) {
+    for (const asset of ASSETS) setStatus(asset.id, { state: 'stored', meta: useAssets.getState().status[asset.id]?.meta ?? bundledMeta(asset, 'size-and-format') });
+    return;
+  }
   await Promise.all(ASSETS.map(async (asset) => {
     const current = useAssets.getState().status[asset.id]?.state;
     if (current === 'downloading' || current === 'queued' || current === 'verifying') return;
@@ -138,6 +176,7 @@ export function ensureAsset(asset: AssetEntry): Promise<ArrayBuffer> {
 export async function loadAssetBytes(assetId: string): Promise<ArrayBuffer> {
   const asset = ASSET_BY_ID.get(assetId);
   if (!asset) throw new AssetError('format', `Unknown asset "${assetId}".`);
+  if (BUNDLED) return loadBundled(asset);
   if (!navigator.onLine) {
     for (const backend of BACKENDS) {
       try {
@@ -170,6 +209,7 @@ function pump() {
 }
 
 export function queueDownloads(assets: AssetEntry[]): void {
+  if (BUNDLED) return;
   for (const asset of assets) {
     const st = useAssets.getState().status[asset.id]?.state;
     if (st === 'stored' || st === 'downloading' || st === 'verifying' || st === 'queued') continue;
@@ -198,6 +238,15 @@ export async function removeAsset(asset: AssetEntry): Promise<void> {
 
 /** Re-hashes stored copies. Corrupted copies are deleted and marked failed. */
 export async function verifyAsset(asset: AssetEntry): Promise<boolean> {
+  if (BUNDLED) {
+    try {
+      await loadBundled(asset);
+      return true;
+    } catch (err) {
+      setStatus(asset.id, { state: 'failed', error: (err as Error).message });
+      return false;
+    }
+  }
   for (const backend of BACKENDS) {
     let hit: Awaited<ReturnType<typeof backend.get>> = null;
     try {

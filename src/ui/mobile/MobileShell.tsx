@@ -11,6 +11,7 @@ import { STRUCTURE_BY_ID } from '../../data/manifest';
 import { contentFor, INFO_ONLY_BY_ID } from '../../data/content';
 import { TOURS } from '../../data/tours';
 import { useViewer } from '../../state/store';
+import { BUNDLED } from '../../assets/repository';
 import { startTour } from '../../features/navigation';
 import { InfoPanelContent } from '../InfoPanel';
 import { SearchBox } from '../Sidebar';
@@ -291,7 +292,7 @@ function MoreList() {
   return (
     <div className="space-y-2">
       <OfflineBadge />
-      <button type="button" className={item} onClick={() => openPanel('downloads')}><Download className="h-4 w-4 text-cyan-300" /> Downloads &amp; offline storage</button>
+      <button type="button" className={item} onClick={() => openPanel('downloads')}><Download className="h-4 w-4 text-cyan-300" /> {BUNDLED ? 'Offline models' : 'Downloads & offline storage'}</button>
       <button type="button" className={item} onClick={() => openPanel('firstRun')}><BookOpen className="h-4 w-4 text-cyan-300" /> Getting started</button>
       <button type="button" className={item} onClick={() => openPanel('about')}><Info className="h-4 w-4 text-cyan-300" /> Sources, license &amp; accuracy</button>
       <p className="pt-2 text-[11px] leading-relaxed text-ink-400">For education only. Not a diagnostic or clinical tool. Models: BodyParts3D (adult male), CC BY-SA 2.1 JP.</p>

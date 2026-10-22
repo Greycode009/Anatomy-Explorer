@@ -1,0 +1,28 @@
+{
+  "name": "anatomy-explorer-android",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "expo": "~58.0.17",
+    "expo-navigation-bar": "~58.0.4",
+    "expo-splash-screen": "~58.0.11",
+    "expo-status-bar": "~58.0.4",
+    "expo-system-ui": "~58.0.6",
+    "react": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-safe-area-context": "~5.10.1",
+    "react-native-webview": "14.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "web:build": "npm --prefix .. run build:native",
+    "prebuild": "expo prebuild --platform android",
+    "apk": "npm run web:build && npm run sync-web && cd android && gradlew.bat assembleRelease",
+    "sync-web": "node plugins/withWebBundle.js"
+  },
+  "private": true
+}

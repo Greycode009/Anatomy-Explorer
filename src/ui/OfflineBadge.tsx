@@ -11,7 +11,7 @@ export function useReadiness() {
   const stored = ASSETS.filter((a) => status[a.id]?.state === 'stored');
   const storedIds = new Set(stored.map((a) => a.id));
   const bothModes = SYSTEMS.filter((s) => storedIds.has(`realistic/${s.id}`) && storedIds.has(`educational/${s.id}`));
-  const shellReady = off.sw === 'active' && off.shellCached;
+  const shellReady = (off.sw === 'active' || off.sw === 'native') && off.shellCached;
   const level =
     stored.length === ASSETS.length && shellReady ? 'all'
       : stored.length > 0 && shellReady ? 'partial'
@@ -25,7 +25,8 @@ export function OfflineBadge() {
   const openPanel = useViewer((s) => s.openPanel);
   const tone = r.level === 'all' ? 'text-emerald-300 border-emerald-400/30' : r.level === 'none' ? 'text-amber-300 border-amber-400/30' : 'text-cyan-300 border-cyan-400/30';
   const title =
-    r.level === 'all' ? 'Fully available offline'
+    r.sw === 'native' && r.level === 'all' ? 'Works offline · models built in'
+      : r.level === 'all' ? 'Fully available offline'
       : r.level === 'partial' ? 'Partly available offline'
         : r.level === 'shell' ? 'App works offline; no models stored'
           : r.sw === 'dev' ? 'Dev server: no offline support'
