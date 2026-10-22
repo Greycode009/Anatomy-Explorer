@@ -4,6 +4,10 @@ An offline-first web application (installable PWA, plus an Android app) for expl
 
 > Educational use only. This is not a diagnostic or clinical tool.
 
+## Download
+
+**Android:** download `AnatomyExplorer.apk` from the [latest release](https://github.com/Greycode009/Anatomy-Explorer/releases/latest). It needs Android 7.0 or newer and works offline; install steps are in the release notes.
+
 ## Features
 
 - **Real 3D anatomy, male and female.** A Male/Female switch selects the reference body, and the selection carries over when the other body has the same structure.
