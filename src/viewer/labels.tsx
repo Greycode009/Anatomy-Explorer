@@ -92,7 +92,7 @@ export function LabelProjector() {
     const loads = useLoadState.getState().loads;
     const cam = camera as THREE.PerspectiveCamera;
     const focal = size.height / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2));
-    const vis = { system: st.system, layers: st.layers, hidden: st.hidden };
+    const vis = { body: st.body, system: st.system, layers: st.layers, hidden: st.hidden };
     const narrow = size.width < 640;
     const max = st.labels ? (st.mode === 'educational' ? (narrow ? 5 : 9) : narrow ? 3 : 5) : 0;
 

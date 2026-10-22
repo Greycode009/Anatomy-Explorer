@@ -9,12 +9,13 @@ const { SKELETAL_CONTENT } = await import('../src/data/content/skeletal.ts');
 const { NERVOUS_CONTENT } = await import('../src/data/content/nervous.ts');
 const { ORGAN_CONTENT } = await import('../src/data/content/organs.ts');
 const { INFO_ONLY } = await import('../src/data/content/info-only.ts');
-const content = { ...MUSCULAR_CONTENT, ...SKELETAL_CONTENT, ...NERVOUS_CONTENT, ...ORGAN_CONTENT };
+const { FEMALE_CONTENT } = await import('../src/data/content/female.ts');
+const content = { ...MUSCULAR_CONTENT, ...SKELETAL_CONTENT, ...NERVOUS_CONTENT, ...ORGAN_CONTENT, ...FEMALE_CONTENT };
 const infoIds = new Set(INFO_ONLY.map((i) => i.id));
 const infoNames = new Set(INFO_ONLY.map((i) => i.name.toLowerCase()));
 
 const problems = [];
-const missing = [...new Set(manifest.structures.map((s) => s.contentId))].filter((c) => !content[c]);
+const missing = [...new Set(manifest.structures.map((s) => s.contentId))].filter((c) => !content[c] && !infoIds.has(c));
 if (missing.length) problems.push(`structures without content: ${missing.join(', ')}`);
 for (const i of INFO_ONLY) if (ids.has(i.id)) problems.push(`info-only id collides with a structure: ${i.id}`);
 
@@ -28,12 +29,16 @@ for (const [key, entry] of [...Object.entries(content), ...INFO_ONLY.map((i) => 
 }
 
 const { TOURS } = await import('../src/data/tours.ts');
-for (const t of TOURS) for (const s of t.steps) if (s.structureId && !ids.has(s.structureId)) problems.push(`tour ${t.id}: unknown structure ${s.structureId}`);
+const BODY = new Map(manifest.structures.map((s) => [s.id, s.body ?? 'male']));
+for (const t of TOURS) for (const s of t.steps) {
+  if (s.structureId && !ids.has(s.structureId)) problems.push(`tour ${t.id}: unknown structure ${s.structureId}`);
+  else if (s.structureId && BODY.get(s.structureId) !== t.body) problems.push(`tour ${t.id}: ${s.structureId} is not in the ${t.body} body`);
+}
 
 const { SYSTEMS } = await import('../src/data/systems.ts').catch(() => ({ SYSTEMS: null }));
 if (SYSTEMS) for (const s of SYSTEMS) if (s.focus && !ids.has(s.focus)) problems.push(`system ${s.id}: unknown focus ${s.focus}`);
 
-console.log(`${manifest.structures.length} structures, ${Object.keys(content).length} content entries, ${INFO_ONLY.length} info-only entries`);
+console.log(`${manifest.structures.length} structures (${manifest.structures.filter((s) => s.body === 'female').length} female), ${Object.keys(content).length} content entries, ${INFO_ONLY.length} info-only entries`);
 console.log(`related links: ${linked} resolve to a structure or info entry, ${plain} plain-text names`);
 console.log(`tours: ${TOURS.length}, steps: ${TOURS.reduce((n, t) => n + t.steps.length, 0)}`);
 if (problems.length) {

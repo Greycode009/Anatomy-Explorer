@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { BookOpen, Download, Info, Search, X } from 'lucide-react';
-import type { SystemId } from '../types';
+import type { Body, SystemId } from '../types';
 import { SYSTEMS, SYSTEM_BY_ID } from '../data/systems';
 import { STRUCTURES, assetFor } from '../data/manifest';
 import { useViewer } from '../state/store';
@@ -10,7 +10,7 @@ import { useAssets } from '../assets/repository';
 import { Logo, SYSTEM_ICONS } from './icons';
 import { OfflineBadge } from './OfflineBadge';
 
-const COUNTS = Object.fromEntries(SYSTEMS.map((s) => [s.id, STRUCTURES.filter((x) => x.system === s.id).length])) as Record<SystemId, number>;
+const count = (system: SystemId, body: Body) => STRUCTURES.filter((x) => x.body === body && (x.system === system || x.alsoIn.includes(system))).length;
 
 /** Anatomy search. `onPick` runs after a result is chosen (the mobile sheet closes itself). */
 export function SearchBox({ autoFocus = false, onPick, listClassName = 'max-h-72' }: { autoFocus?: boolean; onPick?: () => void; listClassName?: string }) {
@@ -21,7 +21,8 @@ export function SearchBox({ autoFocus = false, onPick, listClassName = 'max-h-72
   };
   const [scoped, setScoped] = useState(false);
   const system = useViewer((s) => s.system);
-  const results = useMemo(() => search(q, scoped ? system : 'all'), [q, scoped, system]);
+  const body = useViewer((s) => s.body);
+  const results = useMemo(() => search(q, scoped ? system : 'all', body), [q, scoped, system, body]);
   return (
     <div className="px-4">
       <label className="relative block">
@@ -81,9 +82,11 @@ export function SearchBox({ autoFocus = false, onPick, listClassName = 'max-h-72
 
 function SystemDots({ id }: { id: SystemId }) {
   const status = useAssets((s) => s.status);
+  const body = useViewer((s) => s.body);
   const dot = (mode: 'realistic' | 'educational') => {
-    const a = assetFor(id, mode);
-    const st = a ? status[a.id]?.state : undefined;
+    const a = assetFor(id, mode, body);
+    if (!a) return 'bg-transparent ring-1 ring-ink-600';
+    const st = status[a.id]?.state;
     return st === 'stored' ? 'bg-emerald-400' : st === 'downloading' || st === 'verifying' || st === 'queued' ? 'bg-cyan-400 animate-pulse' : st === 'failed' ? 'bg-rose-400' : 'bg-ink-600';
   };
   return (
@@ -96,6 +99,7 @@ function SystemDots({ id }: { id: SystemId }) {
 
 export function Sidebar() {
   const system = useViewer((s) => s.system);
+  const body = useViewer((s) => s.body);
   const setSystem = useViewer((s) => s.setSystem);
   const openPanel = useViewer((s) => s.openPanel);
   const requestCamera = useViewer((s) => s.requestCamera);
@@ -136,7 +140,7 @@ export function Sidebar() {
                   <span className="flex-1 truncate">{id === 'all' ? 'Full body' : SYSTEM_BY_ID[id].shortName}</span>
                   {id !== 'all' && (
                     <>
-                      <span className="text-[10px] tabular-nums text-ink-400">{COUNTS[id]}</span>
+                      <span className="text-[10px] tabular-nums text-ink-400">{count(id, body)}</span>
                       <SystemDots id={id} />
                     </>
                   )}

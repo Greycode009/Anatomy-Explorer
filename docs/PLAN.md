@@ -49,3 +49,28 @@ Every structure exists in both modes because both are derived from the same sour
 3. Offline: vite-plugin-pwa (Workbox) precaches the shell. The asset repository has IndexedDB as primary storage and Cache Storage as fallback. A downloader handles resume via Range, size/GLB-header/SHA-256 validation and read-back confirmation. The download manager UI and readiness status sit on top.
 4. Content: per-structure educational entries (375 content keys), 50 information-only entries for unmodelled anatomy, system overviews with honest coverage notes, and three guided tours that reference only existing IDs.
 5. QA: an automated Edge-driven test of the production build covers the online preparation, injected interruption and corruption, the fully offline session (server stopped and browser offline), a missing asset and a storage failure (`scripts/e2e-offline.mjs`).
+
+## Addendum: female body (2026-10-22)
+
+BodyParts3D only contains a male body, so a second source was added for the female option.
+
+| Candidate | Verdict |
+|---|---|
+| **Human Reference Atlas, "3D Reference Organ Set for United, Female v1.5"** (HuBMAP, from the NLM Visible Human Female; DOI 10.48539/HBM352.BTSQ.586) | **Used.** CC BY 4.0. One GLB places every female reference organ in a shared body frame, organized by system. The frame is already in meters, +Y up, +Z anterior, +X body-left. |
+| Z-Anatomy | Not used. It is a Blender project derived from the same male BodyParts3D data. |
+| Commercial female models (TurboSquid, CGTrader…) | Not used. Paid or proprietary licenses don't allow redistribution. |
+
+`scripts/prepare-female.mjs` turns the 1,073-node, 5.56 M-triangle source into **123 selectable structures**:
+
+- **Packs:** Realistic 11.7 MB and Educational 2.4 MB, stored under `public/anatomy/female/`.
+- **Splits:** heart chambers and valves, colon segments, paired organs and individual vertebrae are separate structures.
+- **Exclusion:** the placenta is left out because the reference body is not pregnant and the model extends outside the skin.
+- **Welding:** the source stores split vertices, so they are welded before decimation.
+
+What the female body covers:
+
+- **Organs and systems:** reproductive organs and ligaments, mammary glands, heart chambers and valves, lungs and airways, digestive tract from the duodenum to the rectum, liver, biliary tree and pancreas, kidneys, ureters and bladder, spleen, thymus, tonsils and one lymph node.
+- **Nervous system and eyes:** brain halves, spinal cord and eyes.
+- **Skeleton:** pelvis, vertebrae and leg bones with knees.
+
+Not covered: skull, ribs, arms, feet, most muscles, stomach and esophagus.

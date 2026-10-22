@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Focus, Layers, RotateCcw, Scissors, Tag, X, ZoomIn, ZoomOut } from 'lucide-react';
-import type { LayerId, Mode } from '../types';
+import { Eye, EyeOff, Focus, Layers, Mars, RotateCcw, Scissors, Tag, Venus, X, ZoomIn, ZoomOut } from 'lucide-react';
+import type { Body, LayerId, Mode } from '../types';
 import { STRUCTURES, STRUCTURE_BY_ID } from '../data/manifest';
 import { useViewer, type CutAxis } from '../state/store';
 import { CUT_RANGES } from '../viewer/cutPlane';
@@ -23,6 +23,30 @@ export function ModeSwitch({ compact = false }: { compact?: boolean }) {
     <div role="group" aria-label="Visualization mode" className="flex rounded-full border border-ink-700 bg-ink-900/85 p-1 backdrop-blur">
       {btn('realistic', 'Realistic', 'High-detail meshes with physically based tissue materials')}
       {btn('educational', 'Educational', 'Simplified meshes with distinct colors and labels')}
+    </div>
+  );
+}
+
+/** Male / Female reference body. Icons plus text, so the choice never relies on color alone. */
+export function BodySwitch({ compact = false }: { compact?: boolean }) {
+  const body = useViewer((s) => s.body);
+  const setBody = useViewer((s) => s.setBody);
+  const btn = (b: Body, label: string, Icon: typeof Mars, hint: string) => (
+    <button
+      type="button"
+      onClick={() => setBody(b)}
+      aria-pressed={body === b}
+      title={hint}
+      className={`flex items-center gap-1 rounded-full font-semibold transition ${compact ? 'px-2.5 py-1.5 text-xs' : 'px-3 py-1.5 text-xs sm:text-sm'} ${body === b ? 'bg-fuchsia-300 text-ink-950' : 'text-ink-300 hover:text-white'}`}
+    >
+      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+      {label}
+    </button>
+  );
+  return (
+    <div role="group" aria-label="Body" className="flex rounded-full border border-ink-700 bg-ink-900/85 p-1 backdrop-blur">
+      {btn('male', 'Male', Mars, 'Male body (BodyParts3D): full skeleton, muscles and organs')}
+      {btn('female', 'Female', Venus, 'Female body (Human Reference Atlas): organs, reproductive system, brain, pelvis and spine')}
     </div>
   );
 }

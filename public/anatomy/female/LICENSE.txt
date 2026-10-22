@@ -1,0 +1,16 @@
+The 3D model files in this folder (female/realistic/*.glb, female/educational/*.glb) are derived
+from the Human Reference Atlas "3D Reference Organ Set for United, Female v1.5" (HRA v2.0).
+
+Kristen Browne; Heidi Schlehlein. 2023. 3D Reference Organ Set for Female, v1.5. HuBMAP.
+https://doi.org/10.48539/HBM352.BTSQ.586
+Created using data from the Visible Human Female, provided by the U.S. National Library of Medicine.
+Overall: Browne K, Schlehlein H, Herr BW II, Quardokus E, Bueckle A, Börner K. 2023.
+HuBMAP CCF 3D Reference Object Library. https://humanatlas.io/3d-reference-library
+
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+Modifications (scripts/prepare-female.mjs): organs grouped into selectable structures, translated
+so the feet are at y = 0, vertices welded and decimated with meshoptimizer (realistic and
+educational levels of detail), quantized and meshopt-compressed. The placenta was excluded
+because the reference body is not pregnant and the placenta model extends outside the skin.

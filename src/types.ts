@@ -4,6 +4,9 @@ export type SystemId =
 
 export type Mode = 'realistic' | 'educational';
 
+/** Which reference body: male = BodyParts3D, female = Human Reference Atlas (Visible Human Female). */
+export type Body = 'male' | 'female';
+
 export type LayerId = 'skin' | 'muscles-superficial' | 'muscles-deep' | 'skeleton' | 'organs' | 'vessels' | 'nervous';
 
 export type Side = 'left' | 'right' | 'midline';
@@ -11,6 +14,7 @@ export type Side = 'left' | 'right' | 'midline';
 /** One selectable anatomical structure backed by real geometry (from the generated manifest). */
 export interface Structure {
   id: string;
+  body: Body;
   name: string;
   system: SystemId;
   alsoIn: SystemId[];
@@ -29,6 +33,7 @@ export interface Structure {
 
 export interface AssetEntry {
   id: string;
+  body: Body;
   mode: Mode;
   system: SystemId;
   url: string;
@@ -60,7 +65,7 @@ export interface AnatomyManifest {
   assetVersion: string;
   generatedAt: string;
   coordinateFrame: string;
-  source: AssetSource;
+  sources: Record<Body, AssetSource>;
   systems: SystemId[];
   assets: AssetEntry[];
   structures: Structure[];
@@ -96,8 +101,9 @@ export interface SystemInfo {
   color: string;
   overview: string;
   functions: string[];
-  /** Honest statement of what the installed models cover and what is missing. */
+  /** Honest statement of what the installed models cover and what is missing, per body. */
   coverage: string;
+  coverageFemale: string;
   /** Representative structure to frame when the system is opened. */
   focus?: string;
 }
@@ -112,6 +118,7 @@ export interface TourStep {
 
 export interface Tour {
   id: string;
+  body: Body;
   title: string;
   description: string;
   steps: TourStep[];

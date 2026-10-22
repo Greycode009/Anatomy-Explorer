@@ -1,12 +1,15 @@
 # Anatomy Explorer: Interactive 3D Human Anatomy
 
-An offline-first web application (installable PWA) for exploring human anatomy in 3D. It uses real anatomical geometry from the BodyParts3D research dataset and offers two visualization modes, 724 selectable structures across all 11 organ systems, structured educational content, search, guided tours and layer-by-layer exploration. It has no backend: after installation and asset download it runs fully offline.
+An offline-first web application (installable PWA, plus an Android app) for exploring human anatomy in 3D. It has two reference bodies built from real anatomical datasets: a **male** body from BodyParts3D and a **female** body from the NIH Human Reference Atlas. It offers two visualization modes, 847 selectable structures across all 11 organ systems, structured educational content, search, guided tours and layer-by-layer exploration. It has no backend: after installation and asset download it runs fully offline.
 
 > Educational use only. This is not a diagnostic or clinical tool.
 
 ## Features
 
-- **Real 3D anatomy.** 934 BodyParts3D meshes of one adult male body are grouped into 724 selectable structures. Selection uses BVH-accelerated raycasting against the actual meshes. No invisible hitboxes are used.
+- **Real 3D anatomy, male and female.** A Male/Female switch selects the reference body, and the selection carries over when the other body has the same structure.
+  - **Male** (BodyParts3D, 934 meshes → 724 structures): full skeleton, about 175 muscles per side and the organs.
+  - **Female** (Human Reference Atlas "United Female" set, Visible Human Female → 123 structures): organs including the uterus, ovaries, fallopian tubes, vagina, uterine ligaments and mammary glands; a heart with separately selectable atria, ventricles, septum and four valves; brain, spinal cord, eyes, pelvis, vertebrae and leg bones with knees. It has no full skeleton (no skull, ribs or arms) and almost no muscles.
+  - Selection uses BVH-accelerated raycasting against the actual meshes. No invisible hitboxes are used.
 - **Two visualization modes.** Both share structure IDs, selection, search and content:
   - **Realistic Mode:** higher-detail meshes (about 16% of source triangles), physically based tissue materials, studio lighting generated locally.
   - **Educational Mode:** a separate, heavily simplified asset pack (about 2.5% of source triangles), toon shading, a color family per organ system with per-structure variation, and more labels.
@@ -21,7 +24,7 @@ An offline-first web application (installable PWA) for exploring human anatomy i
   - Every structure has an entry with anatomical and common name, system, location, functions, components, how it works, facts and links to related structures (375 entries in total).
   - 50 information-only entries cover anatomy that is not modelled (spinal cord, peripheral nerves, thyroid gland, female reproductive organs, skin layers, heart chambers…). They are clearly marked and link to related modelled structures.
 - **Search.** Matches anatomical names, common names, aliases (e.g. "lats", "Achilles tendon") and source part names, optionally within the current system. Results are badged **3D** or **Info only**.
-- **Guided exploration.** Three tours ("The heart and great vessels", "The path of food", "Peeling back the layers") with next, previous and exit controls.
+- **Guided exploration.** Five tours with next, previous and exit controls. Male body: "The heart and great vessels", "The path of food", "Peeling back the layers". Female body: "Female reproductive anatomy", "Inside the heart" (chamber by chamber).
 - **Offline-first.**
   - The service worker precaches the shell.
   - Models are stored in IndexedDB, with Cache Storage as a fallback.
@@ -69,7 +72,13 @@ npm run fetch-assets
 npm run prepare-assets
 ```
 
-`fetch-assets` downloads the 934 BodyParts3D STL files (1.32 GB) from a pinned commit of the GitHub mirror into `.asset-cache/` and checks each file against its git blob SHA-1. `prepare-assets` (about 1 minute) regenerates the GLB packs and the manifest. The grouping and classification rules are in `scripts/anatomy-rules.mjs`.
+```bash
+npm run prepare-female
+```
+
+- **Male:** `fetch-assets` downloads the 934 BodyParts3D STL files (1.32 GB) from a pinned commit of the GitHub mirror into `.asset-cache/` and checks each file against its git blob SHA-1. `prepare-assets` (about 1 minute) regenerates the male packs; the grouping rules are in `scripts/anatomy-rules.mjs`.
+- **Female:** download `https://cdn.humanatlas.io/hra-releases/v2.0/models/3d-vh-f-united.glb.7z` (78 MB), extract `3d-vh-f-united.glb` into `.asset-cache/hra/` (Windows `tar -xf` can read .7z), then run `prepare-female` (about 30 s).
+- Each script updates only its own body's entries in `src/data/anatomy-manifest.json`.
 
 ## Offline installation and asset preparation
 
@@ -85,7 +94,7 @@ npm run prepare-assets
 
 2. Open the app online. The service worker installs and caches the application shell, which includes all educational text, the manifest, fonts and icons.
 3. Optional: install it with the browser's **Install app** option (Edge or Chrome address bar, or "Add to Home Screen" on mobile).
-4. In the first-run dialog or **Downloads**, choose **Everything** (30.3 MB), or the Educational (4.8 MB) or Realistic (25.6 MB) pack, or individual systems. Wait until every row shows **Available offline**. Systems you open while online are also downloaded automatically.
+4. In the first-run dialog or **Downloads**, choose **Everything** (about 45 MB for both bodies), or the Educational or Realistic pack, or individual systems per body. Wait until every row shows **Available offline**. Systems you open while online are also downloaded automatically.
 5. Press **Request persistent storage** in Downloads. Browsers may still evict site data under storage pressure; **Verify all stored** re-hashes every stored pack.
 6. The app now works without a network connection. Anything not downloaded is reported by name when you try to open it offline.
 
@@ -132,6 +141,7 @@ src/
   state/                  zustand store; small preferences in localStorage
   ui/                     sidebar, info panel, toolbar and layer/cut panels, overlays, modals
   ui/mobile/              phone layout: system chips, tool rail, tab bar, draggable sheets
+mobile/                   Expo (React Native) Android app: a WebView running the bundled offline build (docs/ANDROID.md)
 ```
 
 Storage roles:
@@ -143,7 +153,11 @@ Storage roles:
 
 ## Sources, licenses and attribution
 
-- **3D models:** BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution-Share Alike 2.1 Japan (<https://creativecommons.org/licenses/by-sa/2.1/jp/deed.en>).
+- **Female 3D models:** Kristen Browne; Heidi Schlehlein. 2023. *3D Reference Organ Set for Female, v1.5*. HuBMAP. <https://doi.org/10.48539/HBM352.BTSQ.586>.
+  - Created from the Visible Human Female data provided by the U.S. National Library of Medicine, and licensed under CC BY 4.0 (<https://creativecommons.org/licenses/by/4.0/>).
+  - The derived files in `public/anatomy/female/` are modified (grouped, translated, decimated, compressed). The placenta is excluded.
+  - Attribution is shown in the app under **Sources** and in `public/anatomy/female/LICENSE.txt`.
+- **Male 3D models:** BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution-Share Alike 2.1 Japan (<https://creativecommons.org/licenses/by-sa/2.1/jp/deed.en>).
   - Source data: BodyParts3D 3.0 (2011-09-15), via <https://github.com/Kevin-Mattheus-Moerman/BodyParts3D> at commit `f0eeb6e843380cfe6b83797cf8c3e1af74de5e61`.
   - Citation: Mitsuhashi N. et al., *BodyParts3D: 3D structure database for anatomical concepts*, Nucleic Acids Res. 2009;37:D782-5, doi:10.1093/nar/gkn613.
   - The derived GLB files in `public/anatomy/` are modified (converted, decimated, re-oriented, grouped, compressed) and are distributed under the same license. The attribution is shown in the app under **Sources**.
@@ -153,7 +167,10 @@ Storage roles:
 
 ## Known limitations
 
-- **One body.** A single adult male body: female reproductive anatomy is not modelled (information only), and anatomical variation is not represented.
+- **Two different bodies.** The male and female bodies come from different datasets, so coverage and level of detail differ between them.
+  - The female body has no full skeleton (no skull, ribs, arms or feet), almost no muscles, and no stomach or esophagus.
+  - The male body has no separate heart chambers.
+  - Anatomical variation is not represented. The female source has six lumbar vertebrae, which is shown as segmented in the source.
 - **Gaps in the source dataset.** The spinal cord (only its central canal), peripheral nerves, lymph nodes and vessels, thyroid and parathyroid glands, nasal cavity, pharynx, tongue, skin layers and nails are missing. The heart is one wall mesh, so its chambers are not separately selectable. All of these are labelled as information-only.
 - **No textures.** BodyParts3D has no textures, so Realistic Mode relies on materials and lighting. The skin is one surface and cannot be peeled into layers.
 - **Hollow cuts.** The meshes are surfaces, so cut organs appear hollow in the cutaway view.
@@ -163,7 +180,7 @@ Storage roles:
 ## Next steps
 
 1. Professional review of the educational content.
-2. Add the missing systems' geometry from Z-Anatomy (CC BY-SA 4.0): spinal cord, peripheral nerves, lymph nodes, thyroid, and female anatomy.
+2. Fill the remaining gaps (peripheral nerves, lymph node chains, thyroid; female muscles and the rest of the female skeleton) from other openly licensed sources, for example Z-Anatomy (CC BY-SA 4.0).
 3. Split the heart into chambers (manual segmentation) and add the aortic valve.
 4. Optional Tauri desktop package with the model packs bundled in the installer.
 5. Level-of-detail switching for the muscular pack on mobile GPUs.

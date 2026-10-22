@@ -49,7 +49,7 @@ function prepare(scene: THREE.Group, mode: Mode): Part[] {
 
 function apply(parts: Part[], fade: number) {
   const st = useViewer.getState();
-  const v = { system: st.system, layers: st.layers, hidden: st.hidden };
+  const v = { body: st.body, system: st.system, layers: st.layers, hidden: st.hidden };
   const clipping = st.cut.axis !== 'none' ? [CUT_PLANE] : [];
   for (const p of parts) {
     const s = p.structure;

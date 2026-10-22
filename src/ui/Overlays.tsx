@@ -22,17 +22,17 @@ function retry(assetId: string) {
 
 /** Download, loading and error status for the models the current view needs. */
 export function ViewerStatus() {
-  const { mode, system, layers, hidden, context, setMode } = useViewer();
+  const { mode, body, system, layers, hidden, context, setMode } = useViewer();
   const status = useAssets((s) => s.status);
   const loads = useLoadState((s) => s.loads);
   const online = useOffline((s) => s.online);
-  const needed = useMemo(() => neededAssets({ system, layers, hidden }, mode, context), [system, layers, hidden, mode, context]);
+  const needed = useMemo(() => neededAssets({ body, system, layers, hidden }, mode, context), [body, system, layers, hidden, mode, context]);
 
   const rows = needed.map((id) => {
     const asset = ASSET_BY_ID.get(id)!;
     const st = status[id];
     const load = loads[id];
-    const name = `${SYSTEM_BY_ID[asset.system].shortName} · ${mode}`;
+    const name = `${body === 'female' ? 'Female ' : ''}${SYSTEM_BY_ID[asset.system].shortName} · ${mode}`;
     if (st?.state === 'downloading' || st?.state === 'queued') {
       const pct = st.total ? Math.round(((st.received ?? 0) / st.total) * 100) : 0;
       return { id, kind: 'busy' as const, text: `Downloading ${name} (${formatBytes(st.received ?? 0)} of ${formatBytes(asset.bytes)})`, pct };

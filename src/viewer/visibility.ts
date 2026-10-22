@@ -1,7 +1,8 @@
-import type { LayerId, Mode, Structure, SystemId } from '../types';
+import type { Body, LayerId, Mode, Structure, SystemId } from '../types';
 import { STRUCTURES } from '../data/manifest';
 
 export interface VisibilityInput {
+  body: Body;
   system: SystemId | 'all';
   layers: Record<LayerId, boolean>;
   hidden: Set<string>;
@@ -16,14 +17,14 @@ export function inScope(s: Structure, system: SystemId | 'all'): boolean {
  * are shown regardless of layers. Individually hidden structures are always hidden.
  */
 export function isVisible(s: Structure, v: VisibilityInput): boolean {
-  if (v.hidden.has(s.id)) return false;
+  if (s.body !== v.body || v.hidden.has(s.id)) return false;
   if (v.system !== 'all') return inScope(s, v.system);
   return v.layers[s.layer];
 }
 
 /** Skeleton shown as a faint, non-selectable outline for orientation in single-system views. */
 export function isContext(s: Structure, v: VisibilityInput, context: boolean): boolean {
-  return context && v.system !== 'all' && v.system !== 'skeletal' && s.system === 'skeletal' && !inScope(s, v.system);
+  return context && s.body === v.body && v.system !== 'all' && v.system !== 'skeletal' && s.system === 'skeletal' && !inScope(s, v.system);
 }
 
 export function neededAssets(v: VisibilityInput, mode: Mode, context: boolean): string[] {

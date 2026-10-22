@@ -152,11 +152,14 @@ export function DownloadManager({ onClose }: { onClose: () => void }) {
           <PackButton label="Everything" assets={ASSETS} />
         </div>
         {!r.online && <p className="flex items-center gap-2 rounded-md bg-amber-400/10 px-3 py-2 text-xs text-amber-200"><CloudOff className="h-4 w-4" /> You are offline. Stored assets work; downloads resume when you are back online.</p>}
+        {(['male', 'female'] as const).map((body) => (
+          <section key={body} className="space-y-2">
+            <h3 className="font-display text-sm font-semibold capitalize text-white">{body} body <span className="text-xs font-normal text-ink-400">· {formatBytes(ASSETS.filter((x) => x.body === body).reduce((n, x) => n + x.bytes, 0))}</span></h3>
         {/* Phones: one card per system instead of the wide table. */}
         <ul className="space-y-2 sm:hidden">
-          {SYSTEMS.map((s) => {
+          {SYSTEMS.filter((s) => assetFor(s.id, 'realistic', body)).map((s) => {
             const Icon = SYSTEM_ICONS[s.id];
-            const pair = [assetFor(s.id, 'realistic'), assetFor(s.id, 'educational')].filter((a): a is AssetEntry => !!a);
+            const pair = [assetFor(s.id, 'realistic', body), assetFor(s.id, 'educational', body)].filter((a): a is AssetEntry => !!a);
             return (
               <li key={s.id} className="rounded-xl border border-ink-800 bg-ink-850 p-3">
                 <div className="mb-2 flex items-center gap-2">
@@ -181,10 +184,10 @@ export function DownloadManager({ onClose }: { onClose: () => void }) {
               <tr><th className="py-1.5 font-semibold">System</th><th className="font-semibold">Realistic</th><th className="font-semibold">Educational</th><th className="w-24 font-semibold">Both</th></tr>
             </thead>
             <tbody className="divide-y divide-ink-800">
-              {SYSTEMS.map((s) => {
+              {SYSTEMS.filter((s) => assetFor(s.id, 'realistic', body)).map((s) => {
                 const Icon = SYSTEM_ICONS[s.id];
-                const ra = assetFor(s.id, 'realistic');
-                const ea = assetFor(s.id, 'educational');
+                const ra = assetFor(s.id, 'realistic', body);
+                const ea = assetFor(s.id, 'educational', body);
                 const pair = [ra, ea].filter((a): a is AssetEntry => !!a);
                 return (
                   <tr key={s.id}>
@@ -201,6 +204,8 @@ export function DownloadManager({ onClose }: { onClose: () => void }) {
             </tbody>
           </table>
         </div>
+          </section>
+        ))}
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <button type="button" onClick={() => Promise.all(ASSETS.filter((a) => status[a.id]?.state === 'stored').map(verifyAsset)).then(() => refreshStatuses())} className="flex items-center gap-1.5 rounded-md border border-ink-700 px-2.5 py-1.5 text-ink-200 hover:border-cyan-400/50"><ShieldCheck className="h-3.5 w-3.5" /> Verify all stored</button>
           <button type="button" onClick={() => queueDownloads(ASSETS.filter((a) => status[a.id]?.state === 'failed'))} className="flex items-center gap-1.5 rounded-md border border-ink-700 px-2.5 py-1.5 text-ink-200 hover:border-cyan-400/50"><RefreshCw className="h-3.5 w-3.5" /> Retry failed</button>
@@ -248,7 +253,7 @@ export function FirstRun({ onClose }: { onClose: () => void }) {
     <Modal title="Welcome to Anatomy Explorer" onClose={onClose}>
       <div className="space-y-4 text-sm leading-relaxed text-ink-300">
         <p>
-          Explore a full 3D human body built from <strong className="text-ink-200">BodyParts3D</strong>, a research anatomy dataset with {manifest.structures.length} selectable structures across all eleven organ systems (coverage differs by system; gaps are labelled). Switch between a <strong className="text-ink-200">Realistic</strong> view with detailed meshes and tissue-like materials and a simplified, color-coded <strong className="text-ink-200">Educational</strong> view.
+          Explore 3D human anatomy with {manifest.structures.length} selectable structures in two reference bodies: a <strong className="text-ink-200">male</strong> body from BodyParts3D (full skeleton, muscles and organs) and a <strong className="text-ink-200">female</strong> body from the Human Reference Atlas (organs including the reproductive system, brain, pelvis and spine). Coverage differs by body and system; gaps are labelled. Switch between a <strong className="text-ink-200">Realistic</strong> view with detailed meshes and tissue-like materials and a simplified, color-coded <strong className="text-ink-200">Educational</strong> view.
         </p>
         {BUNDLED ? (
           <p>
@@ -268,7 +273,7 @@ export function FirstRun({ onClose }: { onClose: () => void }) {
           Available immediately: navigation, search, educational content and guided tours. Each system's models download automatically the first time you open it while online. {r.stored}/{r.total} model packs are stored so far — progress is in Downloads.
         </p></>}
         <p className="rounded-md border border-ink-800 bg-ink-850 px-3 py-2 text-xs text-ink-400">
-          Educational use only — not a diagnostic or clinical tool. The model is one adult male body; female reproductive anatomy, peripheral nerves, the spinal cord, lymph nodes and the thyroid are described but not modelled.
+          Educational use only — not a diagnostic or clinical tool. Switch between the male and female body at the top of the viewer. Anatomy that neither model includes (for example peripheral nerves and the thyroid) is described but not modelled.
         </p>
         <div className="sticky bottom-0 -mx-5 flex justify-end border-t border-ink-800 bg-ink-900 px-5 py-3 sm:static sm:mx-0 sm:border-0 sm:p-0">
           <button type="button" onClick={onClose} className="w-full rounded-lg bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-ink-950 sm:w-auto">Start exploring</button>
@@ -279,17 +284,22 @@ export function FirstRun({ onClose }: { onClose: () => void }) {
 }
 
 export function About({ onClose }: { onClose: () => void }) {
-  const src = manifest.source;
+  const sources = manifest.sources;
   return (
     <Modal title="Sources, license and accuracy" onClose={onClose}>
       <div className="space-y-4 text-sm leading-relaxed text-ink-300">
-        <section>
-          <h3 className="font-semibold text-white">3D models</h3>
-          <p>{src.attribution}.</p>
-          <p className="text-xs text-ink-400">{src.citation}</p>
-          <p className="mt-1 text-xs">License: <a className="text-cyan-300 underline" href={src.licenseUrl} target="_blank" rel="noreferrer">{src.license}</a>. Source data: {src.name}, {src.publisher}; downloaded from the GitHub mirror pinned at <span className="break-all text-ink-400">{src.mirror}</span>. Original: <span className="text-ink-400">{src.original}</span>.</p>
-          <p className="mt-1 text-xs text-ink-400">Changes made: {src.modifications} The derived models are shared under the same license.</p>
-        </section>
+        {(['male', 'female'] as const).map((body) => {
+          const src = sources[body];
+          return (
+            <section key={body}>
+              <h3 className="font-semibold text-white">3D models — {body} body</h3>
+              <p>{src.attribution}.</p>
+              <p className="text-xs text-ink-400">{src.citation}</p>
+              <p className="mt-1 text-xs">License: <a className="text-cyan-300 underline" href={src.licenseUrl} target="_blank" rel="noreferrer">{src.license}</a>. Source: {src.name}, {src.publisher}. Downloaded from <span className="break-all text-ink-400">{src.mirror}</span>. Reference: <span className="break-all text-ink-400">{src.original}</span>.</p>
+              <p className="mt-1 text-xs text-ink-400">Changes made: {src.modifications}{body === 'male' ? ' The derived models are shared under the same license.' : ''}</p>
+            </section>
+          );
+        })}
         <section>
           <h3 className="font-semibold text-white">What the two modes are</h3>
           <p className="text-xs">Both modes use the same BodyParts3D geometry and the same structure IDs. Realistic Mode shows meshes decimated to roughly 16% of the source triangles with physically based tissue colors (the dataset has no textures). Educational Mode shows a separate, heavily simplified version (about 2.5% of source triangles) with toon shading, a color family per system and more labels.</p>
@@ -297,8 +307,8 @@ export function About({ onClose }: { onClose: () => void }) {
         <section>
           <h3 className="font-semibold text-white">Accuracy and limits</h3>
           <ul className="list-disc space-y-1 pl-4 text-xs">
-            <li>One adult male body. Positions and proportions are those of the source dataset.</li>
-            <li>Missing structures (spinal cord, peripheral nerves, lymph nodes and vessels, thyroid and parathyroid glands, female reproductive organs, skin layers, nails, heart chambers as separate parts) are information-only and labelled as such.</li>
+            <li>Two different reference bodies from two datasets, so their coverage, detail and proportions differ. The male body (BodyParts3D) has a full skeleton and muscles. The female body (Human Reference Atlas) has detailed organs, including a heart with separate chambers, but only the pelvis, spine and knees of the skeleton and almost no muscles.</li>
+            <li>Structures missing from the current body are information-only and labelled as such. Missing from both bodies: peripheral nerves, lymphatic vessels, thyroid and parathyroid glands, skin layers and nails. The female set's placenta is left out because the reference body is not pregnant.</li>
             <li>See-through mode is transparency, not dissection. The cutaway plane clips surface meshes, so cut organs look hollow.</li>
             <li>Educational text was written for this app from standard anatomy references. It is a learning aid, not medical advice, and not a diagnostic or clinical tool.</li>
           </ul>

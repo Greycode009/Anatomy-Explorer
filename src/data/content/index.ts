@@ -3,6 +3,7 @@ import { MUSCULAR_CONTENT } from './muscular';
 import { SKELETAL_CONTENT } from './skeletal';
 import { NERVOUS_CONTENT } from './nervous';
 import { ORGAN_CONTENT } from './organs';
+import { FEMALE_CONTENT } from './female';
 import { INFO_ONLY } from './info-only';
 import { SYSTEM_BY_ID } from '../systems';
 
@@ -11,6 +12,7 @@ export const CONTENT: Record<string, ContentEntry> = {
   ...SKELETAL_CONTENT,
   ...NERVOUS_CONTENT,
   ...ORGAN_CONTENT,
+  ...FEMALE_CONTENT,
 };
 
 export { INFO_ONLY };
@@ -22,9 +24,13 @@ export function infoOnlyFor(ref: string): InfoOnlyStructure | undefined {
   return INFO_ONLY_BY_ID.get(ref) ?? INFO_ONLY_BY_NAME.get(ref.toLowerCase());
 }
 
-/** Content for a modelled structure, or null when no educational entry has been written yet. */
+/**
+ * Content for a modelled structure, or null when no educational entry has been written yet.
+ * Female-body structures can point at an information-only entry (e.g. the uterus), which is then
+ * backed by a real model.
+ */
 export function contentFor(s: Structure): ContentEntry | null {
-  return CONTENT[s.contentId] ?? null;
+  return CONTENT[s.contentId] ?? INFO_ONLY_BY_ID.get(s.contentId)?.content ?? null;
 }
 
 /** Fallback text used when a structure has geometry but no written entry. */

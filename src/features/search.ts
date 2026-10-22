@@ -1,4 +1,4 @@
-import type { SystemId } from '../types';
+import type { Body, SystemId } from '../types';
 import { STRUCTURES } from '../data/manifest';
 import { CONTENT, INFO_ONLY } from '../data/content';
 
@@ -14,6 +14,7 @@ export interface SearchResult {
 
 interface Doc {
   kind: SearchResult['kind'];
+  body: Body | null;
   id: string;
   name: string;
   system: SystemId;
@@ -25,7 +26,7 @@ const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,
 
 const DOCS: Doc[] = [
   ...STRUCTURES.map((s): Doc => {
-    const c = CONTENT[s.contentId];
+    const c = CONTENT[s.contentId] ?? INFO_ONLY.find((i) => i.id === s.contentId)?.content;
     const terms = [
       { text: s.name, weight: 1 },
       ...(c ? [{ text: c.anatomicalName, weight: 0.9 }] : []),
@@ -33,10 +34,11 @@ const DOCS: Doc[] = [
       ...(c?.aliases ?? []).map((a) => ({ text: a, weight: 0.85 })),
       ...s.parts.map((p) => ({ text: p.name, weight: 0.7 })),
     ];
-    return { kind: 'model', id: s.id, name: s.name, system: s.system, alsoIn: s.alsoIn, terms };
+    return { kind: 'model', body: s.body, id: s.id, name: s.name, system: s.system, alsoIn: s.alsoIn, terms };
   }),
   ...INFO_ONLY.map((i): Doc => ({
     kind: 'info',
+    body: null,
     id: i.id,
     name: i.name,
     system: i.system,
@@ -50,6 +52,12 @@ const DOCS: Doc[] = [
   })),
 ].map((d) => ({ ...d, terms: d.terms.map((t) => ({ ...t, text: norm(t.text) })) }));
 
+/** Information-only IDs that a body actually models (structures whose contentId points at them). */
+const MODELLED_INFO: Record<Body, Set<string>> = {
+  male: new Set(STRUCTURES.filter((s) => s.body === 'male').map((s) => s.contentId)),
+  female: new Set(STRUCTURES.filter((s) => s.body === 'female').map((s) => s.contentId)),
+};
+
 function scoreTerm(term: string, q: string, qWords: string[]): number {
   if (term === q) return 100;
   if (term.startsWith(q)) return 80;
@@ -59,12 +67,16 @@ function scoreTerm(term: string, q: string, qWords: string[]): number {
   return 0;
 }
 
-export function search(query: string, system: SystemId | 'all' = 'all', limit = 40): SearchResult[] {
+/** Searches the given body's structures plus the information-only entries. */
+export function search(query: string, system: SystemId | 'all' = 'all', body: Body = 'male', limit = 40): SearchResult[] {
   const q = norm(query);
   if (q.length < 2) return [];
   const qWords = q.split(/\s+/);
   const out: SearchResult[] = [];
   for (const d of DOCS) {
+    if (d.body !== null && d.body !== body) continue;
+    // An information-only entry is hidden when the current body models it (e.g. the uterus in the female body).
+    if (d.kind === 'info' && MODELLED_INFO[body].has(d.id)) continue;
     if (system !== 'all' && d.system !== system && !d.alsoIn.includes(system)) continue;
     let best = 0;
     let via: string | undefined;

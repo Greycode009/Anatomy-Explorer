@@ -68,7 +68,7 @@ const state = (page) => page.evaluate(() => {
   const three = a.three.get ? a.three.get() : a.three;
   return {
     system: v.system, mode: v.mode, selectedId: v.selectedId, infoId: v.infoId, labels: v.labels, hidden: [...v.hidden],
-    cut: v.cut.axis, tour: v.tour, layers: v.layers,
+    cut: v.cut.axis, tour: v.tour, layers: v.layers, body: v.body,
     loads: a.loads.getState().loads,
     assets: Object.fromEntries(Object.entries(a.assets.getState().status).map(([k, s]) => [k, { state: s.state, error: s.error }])),
     camera: three.camera.position.toArray(),
@@ -401,6 +401,35 @@ async function main() {
   await page.getByRole('button', { name: 'Close Layers & cutaway' }).click();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.evaluate(() => window.__anatomy.viewer.getState().setSystem('all'));
+
+  // Female body (Human Reference Atlas), offline.
+  const bodyGroup = page.getByRole('group', { name: 'Body' }).first();
+  await page.evaluate(() => window.__anatomy.viewer.getState().select('liver'));
+  await bodyGroup.getByRole('button', { name: 'Female', exact: true }).click();
+  await waitForModels(page);
+  s = await state(page);
+  check('Body switch: female body loads offline and keeps the matching selection (liver)', s.body === 'female' && s.selectedId === 'f-liver' && s.triangles > 0, `selected: ${s.selectedId}`);
+  for (const mode of ['educational', 'realistic']) {
+    await setMode(page, mode);
+    await clickSystem(page, 'all');
+    await page.evaluate(() => window.__anatomy.viewer.getState().restoreLayers());
+    await waitForModels(page);
+    s = await state(page);
+    const errs = Object.entries(s.loads).filter(([, l]) => l.state === 'error');
+    check(`Offline ${mode}: female body (all layers) loads from local storage`, errs.length === 0 && s.triangles > 0, errs.length ? JSON.stringify(errs) : `${s.triangles} triangles drawn`);
+  }
+  await search.fill('uterus');
+  await search.press('Enter');
+  await page.waitForTimeout(2500);
+  s = await state(page);
+  const femaleInfo = await page.locator('aside[aria-label="Information panel"]').innerText();
+  check('Female body: search "uterus" selects the 3D uterus with its educational entry', s.selectedId === 'f-uterus' && femaleInfo.includes('Womb'), s.selectedId);
+  await page.screenshot({ path: path.join(OUT, '10c-offline-female-uterus.png') });
+  await search.fill('');
+  await bodyGroup.getByRole('button', { name: 'Male', exact: true }).click();
+  await waitForModels(page);
+  s = await state(page);
+  check('Body switch back to male: the uterus has no male counterpart, so the selection clears with a notice', s.body === 'male' && s.selectedId === null && (await page.locator('main').innerText()).includes('has no model in the male body'));
 
   // Network audit for the whole offline session.
   const network = requests.filter((r) => !r.url.startsWith('blob:') && !r.url.startsWith('data:'));

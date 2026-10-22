@@ -1,8 +1,9 @@
 // Small user preferences only. Binary assets live in IndexedDB / Cache Storage, never here.
-import type { LayerId, Mode, SystemId } from '../types';
+import type { Body, LayerId, Mode, SystemId } from '../types';
 
 export interface Preferences {
   mode: Mode;
+  body: Body;
   system: SystemId | 'all';
   labels: boolean;
   layers: Record<LayerId, boolean>;
@@ -23,6 +24,7 @@ export const DEFAULT_LAYERS: Record<LayerId, boolean> = {
 
 export const DEFAULT_PREFS: Preferences = {
   mode: 'educational',
+  body: 'male',
   system: 'all',
   labels: true,
   layers: DEFAULT_LAYERS,

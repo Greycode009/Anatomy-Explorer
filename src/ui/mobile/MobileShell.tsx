@@ -15,7 +15,7 @@ import { BUNDLED } from '../../assets/repository';
 import { startTour } from '../../features/navigation';
 import { InfoPanelContent } from '../InfoPanel';
 import { SearchBox } from '../Sidebar';
-import { CutControls, LayerControls, ModeSwitch } from '../ViewerControls';
+import { BodySwitch, CutControls, LayerControls, ModeSwitch } from '../ViewerControls';
 import { OfflineBadge } from '../OfflineBadge';
 import { Logo, SYSTEM_ICONS } from '../icons';
 
@@ -376,9 +376,11 @@ function TabBar() {
 export function MobileTopBar() {
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-20 space-y-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
-      <div className="pointer-events-auto flex items-center gap-2 px-3">
+      <div className="pointer-events-auto flex items-center gap-1.5 px-2">
         <Logo className="h-8 w-8 shrink-0" />
-        <span className="min-w-0 flex-1 truncate font-display text-[15px] font-semibold text-white">Anatomy Explorer</span>
+        <span className="sr-only">Anatomy Explorer</span>
+        <span className="flex-1" />
+        <BodySwitch compact />
         <ModeSwitch compact />
       </div>
       <SystemChips />

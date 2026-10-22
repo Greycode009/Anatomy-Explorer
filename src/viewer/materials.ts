@@ -10,7 +10,14 @@ const TISSUE: { test: RegExp; color: string; roughness: number; sheen?: number; 
   { test: /^skin$/, color: '#cf9e85', roughness: 0.55, sheen: 0.4 },
   { test: /cartilage|intervertebral|nasal-cartilages/, color: '#c7d3d6', roughness: 0.35, clearcoat: 0.4 },
   { test: /tendon|linea-alba|iliotibial|aponeurosis|ligament|retinaculum|membrane|tendinous-arch/, color: '#d9d4c3', roughness: 0.4, sheen: 0.5 },
-  { test: /^heart$/, color: '#8a2a2a', roughness: 0.42, clearcoat: 0.5 },
+  { test: /^heart$|atrium|^ventricle|interventricular-septum/, color: '#8a2a2a', roughness: 0.42, clearcoat: 0.5 },
+  { test: /blood-vasculature/, color: '#b5262f', roughness: 0.35, clearcoat: 0.6 },
+  { test: /uterus|vagina|fallopian|ovary/, color: '#c9867e', roughness: 0.42, clearcoat: 0.45 },
+  { test: /mammary/, color: '#e2b49a', roughness: 0.55, sheen: 0.4 },
+  { test: /brain-hemisphere|spinal-cord/, color: '#e3c2b4', roughness: 0.55, sheen: 0.3 },
+  { test: /^eye-/, color: '#f1eee8', roughness: 0.15, clearcoat: 1 },
+  { test: /nerves-of-eye/, color: '#efe3d6', roughness: 0.6 },
+  { test: /lymph-node|tonsil/, color: '#c98b8b', roughness: 0.5, sheen: 0.3 },
   { test: /valve|papillary/, color: '#c98f86', roughness: 0.5 },
   { test: /vein|vena-cava|coronary-sinus|cardiac-veins/, color: '#3b4f9c', roughness: 0.35, clearcoat: 0.6 },
   { test: /artery|aorta|arteries/, color: '#b5262f', roughness: 0.35, clearcoat: 0.6 },
@@ -73,7 +80,9 @@ export interface StructureMaterial extends THREE.Material {
 export function createMaterial(s: Structure, mode: Mode): StructureMaterial {
   let mat: THREE.MeshPhysicalMaterial | THREE.MeshToonMaterial;
   if (mode === 'realistic') {
-    const t = TISSUE.find((x) => x.test.test(s.id)) ?? DEFAULT_BY_SYSTEM[s.system] ?? { color: '#c98276', roughness: 0.45, clearcoat: 0.3 };
+    // Female-body IDs carry an "f-" prefix; tissue rules match the anatomical part of the ID.
+    const key = s.id.replace(/^f-/, '');
+    const t = TISSUE.find((x) => x.test.test(key)) ?? DEFAULT_BY_SYSTEM[s.system] ?? { color: '#c98276', roughness: 0.45, clearcoat: 0.3 };
     mat = new THREE.MeshPhysicalMaterial({
       color: t.color,
       roughness: t.roughness,

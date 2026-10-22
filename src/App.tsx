@@ -4,7 +4,7 @@ import { AnatomyCanvas } from './viewer/AnatomyCanvas';
 import { LabelOverlay } from './viewer/labels';
 import { Sidebar } from './ui/Sidebar';
 import { InfoPanelContent } from './ui/InfoPanel';
-import { ModeSwitch, Toolbar } from './ui/ViewerControls';
+import { BodySwitch, ModeSwitch, Toolbar } from './ui/ViewerControls';
 import { HoverTooltip, NoticeToast, StatusLine, TourPanel, ViewerStatus } from './ui/Overlays';
 import { PanelHost } from './ui/Modals';
 import { MobileShell, collapseSheetsForCanvas } from './ui/mobile/MobileShell';
@@ -49,7 +49,10 @@ export default function App() {
         {/* Desktop chrome */}
         <div className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden justify-center p-3 lg:flex">
           <div className="pointer-events-auto flex flex-col items-center gap-2">
-            <ModeSwitch />
+            <div className="flex items-center gap-2">
+              <BodySwitch />
+              <ModeSwitch />
+            </div>
             <NoticeToast />
           </div>
         </div>

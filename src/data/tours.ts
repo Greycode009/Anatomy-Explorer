@@ -4,6 +4,7 @@ import type { Tour } from '../types';
 export const TOURS: Tour[] = [
   {
     id: 'heart',
+    body: 'male',
     title: 'The heart and great vessels',
     description: 'Follow blood through the heart, its valves and the vessels that connect it to the lungs and body.',
     steps: [
@@ -22,6 +23,7 @@ export const TOURS: Tour[] = [
   },
   {
     id: 'digestion',
+    body: 'male',
     title: 'The path of food',
     description: 'From the esophagus to the rectum, with the liver, gallbladder and pancreas along the way.',
     steps: [
@@ -38,6 +40,7 @@ export const TOURS: Tour[] = [
   },
   {
     id: 'layers',
+    body: 'male',
     title: 'Peeling back the layers',
     description: 'Go from the skin to superficial and deep muscles, the skeleton and the organs.',
     steps: [
@@ -46,6 +49,39 @@ export const TOURS: Tour[] = [
       { system: 'all', layers: { skin: false, 'muscles-superficial': false, 'muscles-deep': true, skeleton: true, organs: false, vessels: false, nervous: false }, structureId: 'transversus-abdominis-left', title: 'Deep muscles', text: 'Removing the superficial layer reveals deeper muscles such as the internal oblique, transversus abdominis and the muscles along the spine.' },
       { system: 'all', layers: { skin: false, 'muscles-superficial': false, 'muscles-deep': false, skeleton: true, organs: false, vessels: false, nervous: false }, structureId: 'first-rib-left', title: 'The skeleton', text: 'The rib cage protects the heart and lungs; the pelvis supports the abdominal organs.' },
       { system: 'all', layers: { skin: false, 'muscles-superficial': false, 'muscles-deep': false, skeleton: false, organs: true, vessels: true, nervous: true }, structureId: 'liver', title: 'Organs', text: 'With the rib cage hidden, the organs of the chest and abdomen are visible together with the brain and major vessels.' },
+    ],
+  },
+  {
+    id: 'female-reproductive',
+    body: 'female',
+    title: 'Female reproductive anatomy',
+    description: 'The uterus, ovaries, fallopian tubes, vagina, supporting ligaments and the mammary glands.',
+    steps: [
+      { system: 'reproductive', title: 'The female reproductive system', text: 'These organs sit in the pelvis, protected by the hip bones and sacrum. The faint skeleton is shown for orientation.' },
+      { system: 'reproductive', structureId: 'f-uterus', title: 'Uterus', text: 'A hollow, muscular organ behind the bladder and in front of the rectum. Its lower part, the cervix, opens into the vagina. During pregnancy it holds the developing fetus.' },
+      { system: 'reproductive', structureId: 'f-ovary-left', title: 'Ovaries', text: 'Two almond-sized glands on either side of the uterus. They release eggs and make the hormones estrogen and progesterone.' },
+      { system: 'reproductive', structureId: 'f-fallopian-tube-left', title: 'Fallopian (uterine) tubes', text: 'Each tube curves from near an ovary to the uterus. Its finger-like fimbriae catch the released egg, and fertilization usually happens in the tube.' },
+      { system: 'reproductive', structureId: 'f-vagina', title: 'Vagina', text: 'A muscular canal running from the cervix to the outside of the body. It is also the birth canal.' },
+      { system: 'reproductive', structureId: 'f-broad-ligament-left', title: 'Supporting ligaments', text: 'Folds of peritoneum and bands of connective tissue — the broad, round, cardinal, uterosacral and ovarian ligaments — hold the uterus and ovaries in position.' },
+      { system: 'integumentary', structureId: 'f-mammary-gland-left', title: 'Mammary glands', text: 'Modified skin glands in the breast. Lobes of glandular tissue drain through lactiferous ducts to the nipple; fat and suspensory ligaments give the breast its shape.' },
+    ],
+  },
+  {
+    id: 'female-heart',
+    body: 'female',
+    title: 'Inside the heart',
+    description: 'The female heart model has separate chambers and valves: follow blood through all four chambers.',
+    steps: [
+      { system: 'cardiovascular', structureId: 'f-cardiac-atrium-right', title: 'Right atrium', text: 'Oxygen-poor blood from the body enters here through the superior and inferior venae cavae.' },
+      { system: 'cardiovascular', structureId: 'f-tricuspid-valve', title: 'Tricuspid valve', text: 'Opens to let blood pass into the right ventricle and closes to stop it flowing back.' },
+      { system: 'cardiovascular', structureId: 'f-ventricle-right', title: 'Right ventricle', text: 'Pumps blood through the pulmonary valve to the lungs.' },
+      { system: 'cardiovascular', structureId: 'f-pulmonary-valve', title: 'Pulmonary valve', text: 'Sits at the exit of the right ventricle and prevents backflow from the pulmonary trunk.' },
+      { system: 'cardiovascular', structureId: 'f-cardiac-atrium-left', title: 'Left atrium', text: 'Oxygen-rich blood returns from the lungs through the pulmonary veins into the left atrium.' },
+      { system: 'cardiovascular', structureId: 'f-mitral-valve', title: 'Mitral valve', text: 'The two-cusped valve between the left atrium and left ventricle.' },
+      { system: 'cardiovascular', structureId: 'f-ventricle-left', title: 'Left ventricle', text: 'The thickest-walled chamber. It pumps blood through the aortic valve into the aorta and on to the whole body.' },
+      { system: 'cardiovascular', structureId: 'f-aortic-valve', title: 'Aortic valve', text: 'Prevents blood flowing back from the aorta into the left ventricle between beats.' },
+      { system: 'cardiovascular', structureId: 'f-interventricular-septum', title: 'Interventricular septum', text: 'The muscular wall between the two ventricles keeps oxygen-poor and oxygen-rich blood apart.' },
+      { system: 'cardiovascular', structureId: 'f-papillary-muscles', title: 'Papillary muscles', text: 'Small muscles inside the ventricles that anchor the tricuspid and mitral valve cusps through tendinous cords.' },
     ],
   },
 ];

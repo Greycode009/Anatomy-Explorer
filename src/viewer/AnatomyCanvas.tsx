@@ -42,7 +42,7 @@ function CameraRig() {
       if (!s) return;
       // Frame the structure from its bounding box, keeping the current viewing direction.
       const center = new THREE.Vector3(...s.center);
-      const radius = Math.max(0.025, Math.hypot(...s.size) / 2);
+      const radius = Math.max(0.045, Math.hypot(...s.size) / 2);
       const fov = THREE.MathUtils.degToRad(FOV);
       const aspect = (cam as THREE.PerspectiveCamera).aspect || 1;
       const fit = radius / Math.sin(Math.min(fov, fov * aspect) / 2);
@@ -69,12 +69,13 @@ function CameraRig() {
 
 function Models() {
   const mode = useViewer((s) => s.mode);
+  const body = useViewer((s) => s.body);
   const system = useViewer((s) => s.system);
   const layers = useViewer((s) => s.layers);
   const hidden = useViewer((s) => s.hidden);
   const context = useViewer((s) => s.context);
   const nonce = useViewer((s) => s.reloadNonce);
-  const assets = useMemo(() => neededAssets({ system, layers, hidden }, mode, context), [system, layers, hidden, mode, context]);
+  const assets = useMemo(() => neededAssets({ body, system, layers, hidden }, mode, context), [body, system, layers, hidden, mode, context]);
   return (
     <group>
       {assets.map((id) => <AssetModel key={`${id}:${nonce}`} assetId={id} mode={mode} />)}

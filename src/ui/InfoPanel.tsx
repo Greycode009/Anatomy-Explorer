@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Box, Crosshair, EyeOff, Route, TriangleAlert, X } from 'lucide-react';
 import type { ContentEntry, Mode, Structure } from '../types';
-import { STRUCTURE_BY_ID, hasModel, structuresInSystem } from '../data/manifest';
+import { STRUCTURE_BY_ID, counterpart, hasModel, structuresInSystem } from '../data/manifest';
 import { SYSTEM_BY_ID } from '../data/systems';
 import { contentFor, fallbackContent, INFO_ONLY_BY_ID, infoOnlyFor } from '../data/content';
 import { TOURS } from '../data/tours';
@@ -19,16 +19,22 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function RelatedLinks({ related }: { related: string[] }) {
   const mode = useViewer((s) => s.mode);
+  const body = useViewer((s) => s.body);
   return (
     <ul className="flex flex-wrap gap-1.5">
       {related.map((r) => {
-        const s = STRUCTURE_BY_ID.get(r);
+        // Related entries name male structure IDs; in the female body, link to the matching structure.
+        const ref = STRUCTURE_BY_ID.get(r);
+        const s = ref && ref.body !== body ? counterpart(ref, body) : ref;
         const info = infoOnlyFor(r);
+        if (ref && !s) {
+          return <li key={r} className="rounded-full border border-ink-700 px-2.5 py-1 text-xs text-ink-400" title={`Not modelled in the ${body} body`}>{ref.name.replace(/^(Left|Right) /, '')}</li>;
+        }
         if (s) {
           const ok = hasModel(s, mode);
           return (
             <li key={r}>
-              <button type="button" disabled={!ok} onClick={() => goToStructure(r)} className="rounded-full border border-cyan-400/30 bg-cyan-400/5 px-2.5 py-1 text-xs text-cyan-200 hover:bg-cyan-400/15 disabled:opacity-40">
+              <button type="button" disabled={!ok} onClick={() => goToStructure(s.id)} className="rounded-full border border-cyan-400/30 bg-cyan-400/5 px-2.5 py-1 text-xs text-cyan-200 hover:bg-cyan-400/15 disabled:opacity-40">
                 {s.name}
               </button>
             </li>
@@ -161,15 +167,16 @@ function InfoOnlyView({ id, hideHeader }: { id: string; hideHeader?: boolean }) 
 function SystemOverview({ hideHeader }: { hideHeader?: boolean }) {
   const system = useViewer((s) => s.system);
   const mode = useViewer((s) => s.mode);
+  const body = useViewer((s) => s.body);
   const hidden = useViewer((s) => s.hidden);
   const [filter, setFilter] = useState('');
-  const list = useMemo(() => (system === 'all' ? [] : structuresInSystem(system)).filter((s) => s.name.toLowerCase().includes(filter.toLowerCase())), [system, filter]);
+  const list = useMemo(() => (system === 'all' ? [] : structuresInSystem(system, body)).filter((s) => s.name.toLowerCase().includes(filter.toLowerCase())), [system, body, filter]);
 
   if (system === 'all') {
     return (
       <div className="space-y-4">
         <header>
-          <h2 className={hideHeader ? 'sr-only' : 'font-display text-xl font-semibold text-white'}>Full body</h2>
+          <h2 className={hideHeader ? 'sr-only' : 'font-display text-xl font-semibold text-white'}>Full body · {body}</h2>
           <p className="mt-1 text-sm leading-relaxed text-ink-300">
             {hideHeader
               ? 'Tap any structure to identify it. Use Layers to peel from skin to muscle to bone and organs, or pick an organ system from the chips at the top.'
@@ -178,7 +185,7 @@ function SystemOverview({ hideHeader }: { hideHeader?: boolean }) {
         </header>
         <Section title="Guided exploration">
           <ul className="space-y-2">
-            {TOURS.map((t) => (
+            {TOURS.filter((t) => t.body === body).map((t) => (
               <li key={t.id}>
                 <button type="button" onClick={() => startTour(t.id)} className="w-full rounded-lg border border-ink-700 bg-ink-850 p-3 text-left hover:border-cyan-400/40">
                   <span className="flex items-center gap-2 text-sm font-medium text-white"><Route className="h-4 w-4 text-cyan-300" /> {t.title}</span>
@@ -189,7 +196,9 @@ function SystemOverview({ hideHeader }: { hideHeader?: boolean }) {
           </ul>
         </Section>
         <p className="text-[11px] leading-relaxed text-ink-400">
-          For education only. Not a diagnostic or clinical tool. Models: BodyParts3D (adult male), CC BY-SA 2.1 JP.
+          For education only. Not a diagnostic or clinical tool. {body === 'male'
+            ? 'Male body: BodyParts3D, CC BY-SA 2.1 JP — a full skeleton, muscles and organs.'
+            : 'Female body: Human Reference Atlas (Visible Human Female), CC BY 4.0 — organs, skin, brain, pelvis, spine and knees; no full skeleton or muscles.'}
         </p>
       </div>
     );
@@ -209,7 +218,7 @@ function SystemOverview({ hideHeader }: { hideHeader?: boolean }) {
         <ul className="list-disc space-y-1 pl-4 text-sm text-ink-300 marker:text-cyan-400">{sys.functions.map((f) => <li key={f}>{f}</li>)}</ul>
       </Section>
       <Section title="What is modelled">
-        <p className="rounded-md bg-ink-850 px-2.5 py-2 text-xs leading-relaxed text-ink-300">{sys.coverage}</p>
+        <p className="rounded-md bg-ink-850 px-2.5 py-2 text-xs leading-relaxed text-ink-300">{body === 'male' ? sys.coverage : sys.coverageFemale}</p>
       </Section>
       <Section title={`Structures (${list.length})`}>
         <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter this list" aria-label="Filter structures" className="w-full rounded-md border border-ink-700 bg-ink-850 px-2.5 py-2 text-base lg:py-1.5 lg:text-xs focus:border-cyan-400/60 focus:outline-none" />

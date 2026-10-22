@@ -17,6 +17,7 @@ export function goToStructure(id: string): void {
   }
   const s = STRUCTURE_BY_ID.get(id);
   if (!s) return;
+  if (s.body !== st.body) useViewer.setState({ body: s.body, hidden: new Set() });
   if (!hasModel(s, st.mode)) {
     st.notify({ tone: 'warning', text: `${s.name} has no ${st.mode} model.` });
     return;
@@ -36,6 +37,7 @@ export function startTour(id: string, step = 0): void {
   const s = tour?.steps[step];
   if (!tour || !s) return;
   const st = useViewer.getState();
+  if (tour.body !== st.body) st.setBody(tour.body);
   st.setTour({ id, step });
   if (s.system !== st.system) st.setSystem(s.system);
   if (s.layers) useViewer.getState().setLayers(s.layers);

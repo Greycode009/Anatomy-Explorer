@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import type { LayerId, Mode, SystemId } from '../types';
+import type { Body, LayerId, Mode, SystemId } from '../types';
 import { DEFAULT_LAYERS, loadPreferences, savePreferences } from './preferences';
-import { STRUCTURE_BY_ID, hasModel } from '../data/manifest';
+import { STRUCTURE_BY_ID, counterpart, hasModel } from '../data/manifest';
 import { updateCutPlane } from '../viewer/cutPlane';
 
 export type CameraRequest =
@@ -21,6 +21,8 @@ export type Panel = 'downloads' | 'firstRun' | 'about' | null;
 
 interface ViewerState {
   mode: Mode;
+  /** Which reference body is shown (male: BodyParts3D, female: Human Reference Atlas). */
+  body: Body;
   system: SystemId | 'all';
   selectedId: string | null;
   /** An information-only entry (no 3D model) being shown in the info panel. */
@@ -45,6 +47,7 @@ interface ViewerState {
   reloadNonce: number;
 
   setMode: (mode: Mode) => void;
+  setBody: (body: Body) => void;
   setSystem: (system: SystemId | 'all') => void;
   select: (id: string | null, opts?: { focus?: boolean }) => void;
   hover: (id: string | null) => void;
@@ -71,6 +74,7 @@ let nonce = 0;
 
 export const useViewer = create<ViewerState>((set, get) => ({
   mode: prefs.mode,
+  body: prefs.body,
   system: prefs.system,
   selectedId: null,
   infoId: null,
@@ -106,6 +110,24 @@ export const useViewer = create<ViewerState>((set, get) => ({
           },
         });
       }
+    }
+  },
+  setBody: (body) => {
+    const { selectedId, body: previous } = get();
+    if (body === previous) return;
+    const s = selectedId ? STRUCTURE_BY_ID.get(selectedId) : undefined;
+    const match = s ? counterpart(s, body) : null;
+    const { system } = get();
+    // Keep the matching structure visible: leave a system view that does not contain it.
+    const keepSystem = !match || system === 'all' || match.system === system || match.alsoIn.includes(system);
+    set({ body, hidden: new Set(), selectedId: match?.id ?? null, tour: null, system: keepSystem ? system : 'all' });
+    if (match) get().requestCamera({ kind: 'focus', id: match.id });
+    else if (s) {
+      get().notify({
+        tone: 'info',
+        text: `${s.name} has no model in the ${body} body.`,
+        actions: [{ label: `Back to ${previous} body`, run: () => get().setBody(previous) }],
+      });
     }
   },
   setSystem: (system) => {
@@ -149,5 +171,5 @@ export const useViewer = create<ViewerState>((set, get) => ({
 
 // Persist the lightweight preferences.
 useViewer.subscribe((s) => {
-  savePreferences({ mode: s.mode, system: s.system, labels: s.labels, layers: s.layers, firstRunDone: s.firstRunDone });
+  savePreferences({ mode: s.mode, body: s.body, system: s.system, labels: s.labels, layers: s.layers, firstRunDone: s.firstRunDone });
 });

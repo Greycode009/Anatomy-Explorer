@@ -1,6 +1,6 @@
 # Android app (Expo)
 
-The Android app lives in [`mobile/`](../mobile). It is an Expo (SDK 58) app whose only screen is a full-screen `react-native-webview`. That WebView runs the same web app, built as one self-contained `index.html`, and it is **packaged inside the APK** together with all 22 model packs (30 MB). The app needs no network, no server and no downloads; it works offline from the first launch.
+The Android app lives in [`mobile/`](../mobile). It is an Expo (SDK 58) app whose only screen is a full-screen `react-native-webview`. That WebView runs the same web app, built as one self-contained `index.html`, and it is **packaged inside the APK** together with all 42 model packs for the male and female bodies (about 44 MB). The app needs no network, no server and no downloads; it works offline from the first launch.
 
 ## How it fits together
 
@@ -59,7 +59,9 @@ The release APK is signed with the **debug keystore** that Expo's template gener
 
 ## Test results (2026-10-22)
 
-- **Build:** `gradlew.bat assembleRelease` succeeded. The APK is 76.8 MB and signed with the debug key; `apksigner verify` passes. It targets SDK 36 and contains arm64-v8a, armeabi-v7a and x86_64 code, plus `assets/web/index.html` and all 22 `.glb` packs.
+- **Build:** `gradlew.bat assembleRelease` succeeded. The APK is signed with the debug key and `apksigner verify` passes. It targets SDK 36 and contains arm64-v8a, armeabi-v7a and x86_64 code plus `assets/web/index.html`.
+  - First build (male body only): 76.8 MB with 22 `.glb` packs.
+  - With the female body added: 87.7 MB with all 42 packs, copied to `release/AnatomyExplorer.apk`. The emulator checks below were run on the first build. The female body was verified in the web build (`docs/TEST-RESULTS.md`), which uses the same bundle.
 - **Packaged bundle from `file://` in Edge, network disabled:** the web app loads and every model pack is read from the package and passes its SHA-256 check (2.6 s to the first view). The "Offline models" panel reports the built-in packs. The native back event closes the selection first, then asks the shell to exit.
 - **Android 15 emulator (System WebView 124), airplane mode:** the APK installs and launches, and the 3D body renders from the packaged models with the phone UI (system chips, tool rail, info sheet, tab bar) and labels.
   - The test PC has 8 GB of RAM and fell back to software rendering (SwiftShader), so Android's own System UI repeatedly froze ("isn't responding"). That prevented a full interactive pass on the emulator.

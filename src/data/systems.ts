@@ -17,6 +17,8 @@ export const SYSTEMS: SystemInfo[] = [
     ],
     coverage:
       'Modelled from BodyParts3D: skull bones, mandible, hyoid, vertebrae C1–L5, sacrum, ribs, costal cartilages, sternum, clavicles, scapulae, pelvis and all limb bones including carpals, tarsals and phalanges. Not modelled as separate meshes: coccyx, auditory ossicles, most ligaments and joint capsules.',
+    coverageFemale:
+      'Female body (Human Reference Atlas): pelvis (sacrum, coccyx, left and right ilium, ischium and pubis), vertebrae C1–C7, T1–T12 and six lumbar vertebrae as segmented in the source, and both legs (femur, tibia, fibula and patella with the knee ligaments and menisci). Not modelled: skull, ribs, sternum, shoulder girdle, arms and feet.',
     focus: 'femur-left',
   },
   {
@@ -34,6 +36,8 @@ export const SYSTEMS: SystemInfo[] = [
     ],
     coverage:
       'Modelled: about 175 muscles and muscle groups per side of the head, neck, trunk, limbs, hands, feet and pelvic floor, plus major tendons and fasciae (calcaneal tendon, iliotibial tract, linea alba). Not modelled: tongue and extra-ocular muscles, perineal muscles other than the levator ani group and external anal sphincter, and several small neck muscles.',
+    coverageFemale:
+      'Female body: only the extraocular muscles of each eye and the lower part of rectus femoris at each knee are modelled. The rest of the female muscular system is not part of the source dataset; switch to the male body to explore muscles.',
     focus: 'pectoralis-major-left',
   },
   {
@@ -51,6 +55,8 @@ export const SYSTEMS: SystemInfo[] = [
     ],
     coverage:
       'Modelled: brain only — cerebral gyri and lobes, deep nuclei (thalamus, caudate, putamen, globus pallidus), limbic structures, corpus callosum, ventricles, brainstem, cerebellum, optic nerves and tracts, plus the eyeball and ear meshes. Not modelled: the spinal cord itself (only its central canal is present) and all peripheral nerves. These are listed in search as information-only entries.',
+    coverageFemale:
+      'Female body: left and right halves of the brain (built from Allen Human Brain Atlas regions), optic nerves and chiasm, the spinal cord (C1–S4 segments) and both eyes. Not modelled: cranial and peripheral nerves.',
     focus: 'cerebellum',
   },
   {
@@ -68,6 +74,8 @@ export const SYSTEMS: SystemInfo[] = [
     ],
     coverage:
       'Modelled: heart wall, tricuspid, mitral and pulmonary valves, papillary muscles, coronary arteries and cardiac veins, aorta, venae cavae, pulmonary artery and veins, and the major trunk vessels (carotid, subclavian, brachiocephalic, renal, mesenteric, iliac). The four chambers are not separate meshes, the aortic valve is not modelled, and limb and head vessels beyond the trunk are not included.',
+    coverageFemale:
+      'Female body: the heart with separately selectable left and right atria and ventricles, interventricular septum, all four valves (aortic, pulmonary, mitral, tricuspid) and papillary muscles, plus blood vessels grouped by organ (heart, liver, kidneys, spleen, gallbladder, large intestine, uterus, eyes). Not modelled: the aorta, venae cavae and limb vessels as separate structures.',
     focus: 'heart',
   },
   {
@@ -85,6 +93,8 @@ export const SYSTEMS: SystemInfo[] = [
     ],
     coverage:
       'Modelled: lungs (by lobe), trachea, bronchi, thyroid cartilage of the larynx, nasal cartilages and the diaphragm. Not modelled: nasal cavity, pharynx, the rest of the larynx (epiglottis, cricoid, vocal folds) and pleura.',
+    coverageFemale:
+      'Female body: left and right lungs (with bronchopulmonary segments as parts), trachea, left and right bronchial trees and laryngeal cartilages. Not modelled: nasal cavity, pharynx and diaphragm.',
     focus: 'lung-right',
   },
   {
@@ -102,6 +112,8 @@ export const SYSTEMS: SystemInfo[] = [
     ],
     coverage:
       'Modelled: teeth, gums, lips, esophagus, stomach, duodenum, jejunum, ileum, appendix, colon with taeniae, rectum, liver, gallbladder, pancreas and pancreatic duct. Not modelled: tongue, salivary glands, pharynx, bile ducts and anal canal.',
+    coverageFemale:
+      'Female body: palatine tonsils, duodenum, jejunum, ileum, cecum, appendix, colon by segment, rectum, liver, gallbladder, biliary tree and pancreas. Not modelled: mouth, teeth, esophagus and stomach.',
     focus: 'stomach',
   },
   {
@@ -118,6 +130,8 @@ export const SYSTEMS: SystemInfo[] = [
       'Produces hormones such as erythropoietin and activates vitamin D',
     ],
     coverage: 'Modelled: both kidneys, both ureters, urinary bladder and urethra (male anatomy).',
+    coverageFemale:
+      'Female body: both kidneys, renal pelvis and ureter on each side, and the urinary bladder. Not modelled: urethra.',
     focus: 'kidney-left',
   },
   {
@@ -126,14 +140,16 @@ export const SYSTEMS: SystemInfo[] = [
     shortName: 'Reproductive',
     color: '#c58ad8',
     overview:
-      'The reproductive system produces gametes (sperm or eggs) and sex hormones. The installed model is of an adult male body, so only male reproductive structures have 3D geometry.',
+      'The reproductive system produces gametes (sperm or eggs) and sex hormones. Use the Male/Female switch to see each body: the male body shows the testes, ducts, glands and penis; the female body shows the uterus, ovaries, fallopian tubes, vagina and mammary glands.',
     functions: [
       'Produces gametes',
       'Produces sex hormones',
       'Enables fertilization (and, in females, supports pregnancy)',
     ],
     coverage:
-      'Modelled (male only): testes, epididymides, deferent ducts, seminal vesicles, prostate and penis (corpora cavernosa, corpus spongiosum, glans). Not modelled: female reproductive organs (ovaries, uterine tubes, uterus, vagina, vulva, breasts) — these appear in search as information-only entries — and the scrotum.',
+      'Modelled (male only): testes, epididymides, deferent ducts, seminal vesicles, prostate and penis (corpora cavernosa, corpus spongiosum, glans). Not modelled in this body: the scrotum. Female reproductive organs are modelled in the female body (use the Male/Female switch).',
+    coverageFemale:
+      'Female body: uterus (including cervix), ovaries, fallopian tubes, vagina, the uterine and ovarian ligaments and the mammary glands. The placenta in the source set is left out because it belongs to pregnancy and this reference body is not pregnant.',
     focus: 'prostate',
   },
   {
@@ -151,6 +167,8 @@ export const SYSTEMS: SystemInfo[] = [
     ],
     coverage:
       'Modelled: pituitary gland, pineal body, adrenal glands, plus structures shown here from other systems that have endocrine roles (hypothalamus, pancreas, thymus, testes). Not modelled: thyroid gland and parathyroid glands (information-only entries).',
+    coverageFemale:
+      'Female body: ovaries, pancreas and thymus (shown from their own systems). Not modelled: pituitary, pineal, thyroid, parathyroid and adrenal glands.',
     focus: 'pituitary-gland',
   },
   {
@@ -168,6 +186,8 @@ export const SYSTEMS: SystemInfo[] = [
     ],
     coverage:
       'Modelled: spleen and thymus (plus splenic vessels in the cardiovascular system). Not modelled: lymph nodes, lymphatic vessels, thoracic duct and tonsils (information-only entries).',
+    coverageFemale:
+      'Female body: spleen, thymus, palatine tonsils and one representative lymph node. Not modelled: the lymph node chains and lymphatic vessels.',
     focus: 'spleen',
   },
   {
@@ -185,6 +205,8 @@ export const SYSTEMS: SystemInfo[] = [
     ],
     coverage:
       'Modelled: the body surface (skin) as a single surface mesh, scalp hair, eyebrows and pubic hair. Not modelled: the separate skin layers (epidermis, dermis, hypodermis), hair follicles, glands and nails. These are explained as information-only entries; the skin mesh cannot be dissected into layers.',
+    coverageFemale:
+      'Female body: skin as one surface mesh and both mammary glands (lobes, ducts, nipple, areola, fat and suspensory ligaments as parts). Not modelled: hair, nails and the separate skin layers.',
     focus: 'skin',
   },
 ];
