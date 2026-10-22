@@ -1,0 +1,17 @@
+The 3D model files in this folder (realistic/*.glb, educational/*.glb) are derived from
+BodyParts3D 3.0 (20110915).
+
+BodyParts3D, (c) The Database Center for Life Science licensed under
+CC Attribution-Share Alike 2.1 Japan.
+https://creativecommons.org/licenses/by-sa/2.1/jp/deed.en
+Original data: https://dbarchive.biosciencedbc.jp/en/bodyparts3d/
+Mirror used: https://github.com/Kevin-Mattheus-Moerman/BodyParts3D (commit f0eeb6e843380cfe6b83797cf8c3e1af74de5e61)
+
+Citation: Mitsuhashi N, Fujieda K, Tamura T, Kawamoto S, Takagi T, Okubo K.
+BodyParts3D: 3D structure database for anatomical concepts. Nucleic Acids Res. 2009;37:D782-5.
+doi:10.1093/nar/gkn613
+
+Modifications: converted from STL to GLB, vertices welded, decimated with meshoptimizer
+(realistic and educational levels of detail), re-oriented and scaled to metres, grouped into
+structures, quantized and meshopt-compressed (scripts/prepare-assets.mjs).
+These derived files are distributed under the same license (CC BY-SA 2.1 JP).

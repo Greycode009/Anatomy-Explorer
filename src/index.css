@@ -1,0 +1,62 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/space-grotesk';
+
+@theme {
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-display: 'Space Grotesk Variable', 'Inter Variable', sans-serif;
+  --color-ink-950: #060a11;
+  --color-ink-900: #0a111c;
+  --color-ink-850: #0e1724;
+  --color-ink-800: #121d2d;
+  --color-ink-700: #1b2a3f;
+  --color-ink-600: #2a3d57;
+  --color-ink-400: #7d8ea6;
+  --color-ink-300: #a6b4c7;
+  --color-ink-200: #cdd6e2;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ink-950);
+  color: var(--color-ink-200);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+:focus-visible {
+  outline: 2px solid #22d3ee;
+  outline-offset: 2px;
+}
+
+.label-chip {
+  border-color: rgb(103 232 249 / 0.25);
+  background: rgb(8 15 26 / 0.78);
+  color: #dbeafe;
+}
+
+.label-chip[data-selected='true'] {
+  border-color: #22d3ee;
+  background: rgb(8 47 73 / 0.92);
+  color: #ecfeff;
+  font-weight: 700;
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #2a3d57 transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
